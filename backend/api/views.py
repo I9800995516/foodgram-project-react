@@ -18,7 +18,7 @@ from .permissions import IsAuthorOrAdminOrReadOnly
 from .serializers import (PostRecipeSerializer, FavoriteSerializer,
                           IngredientsSerializer, RecipeSerializer,
                           ShoppingCartSerializer, SubscribeSerializer,
-                          TagsSerializer, UserSerializer)
+                          TagsSerializer, CustomUserSerializer)
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -130,7 +130,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 class UsersViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     pagination_class = Pagination
 
     @action(

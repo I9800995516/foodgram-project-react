@@ -31,7 +31,7 @@ class Ingredients(models.Model):
 
 
 class Tags(models.Model):
-    """Теги"""
+    """Теги."""
     name = models.CharField(
         verbose_name='Название тега',
         max_length=LENGTH,
@@ -113,7 +113,7 @@ class FavoriteShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
-        verbose_name='Рецепт')
+        verbose_name='Рецепты')
 
     class Meta:
         abstract = True
@@ -131,7 +131,7 @@ class Favorites(FavoriteShoppingCart):
     """Добавление в избраное."""
 
     class Meta(FavoriteShoppingCart.Meta):
-        default_related_name = 'favorites'
+        related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
 
@@ -140,7 +140,7 @@ class ShoppingCart(FavoriteShoppingCart):
     """Список покупок."""
 
     class Meta(FavoriteShoppingCart.Meta):
-        default_related_name = 'shopping_list'
+        related_name = 'shopping_list'
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
 

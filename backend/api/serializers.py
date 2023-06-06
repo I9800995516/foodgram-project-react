@@ -10,7 +10,7 @@ from .models import (Favorites, Ingredients, IngredientRecipe, Recipes,
                      ShoppingCart, Tags)
 
 
-class UserSerializer(UserSerializer):
+class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователя"""
     is_subscribed = SerializerMethodField(read_only=True)
 
@@ -138,7 +138,7 @@ class IngredientsRecipesSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор  рецепта."""
     tags = TagsSerializer(read_only=False, many=True)
-    author = UserSerializer(read_only=True, many=False)
+    author = CustomUserSerializer(read_only=True, many=False)
     ingredients = IngredientsRecipesSerializer(
         many=True,
         source='ingredientrecipe')
@@ -187,7 +187,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         queryset=Tags.objects.all(),
         error_messages={'does_not_exist': 'Указанного тега не существует'})
     image = Base64ImageField(max_length=None)
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     cooking_time = serializers.IntegerField()
 
     class Meta:

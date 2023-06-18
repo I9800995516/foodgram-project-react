@@ -16,7 +16,8 @@ const Input = ({
     required,
     onFocus,
     onBlur,
-    value = ''
+    value = '',
+    data_test
   }) => {
 
   const [ inputValue, setInputValue ] = useState(value)
@@ -38,6 +39,7 @@ const Input = ({
         {label}
       </div>}
       <input
+        data_test={data_test}
         type={type}
         required={required}
         name={name}

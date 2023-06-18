@@ -10,7 +10,8 @@ const Textarea = ({
     disabled,
     textareaClassName,
     labelClassName,
-    value
+    value,
+    data_test
   }) => {
 
   const [ inputValue, setInputValue ] = useState(value)
@@ -32,6 +33,7 @@ const Textarea = ({
         {label}
       </div>
       <textarea
+        data_test={data_test}
         rows="8"
         value={inputValue}
         className={cn(styles.textareaField, textareaClassName)}

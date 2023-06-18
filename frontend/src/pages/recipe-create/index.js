@@ -37,7 +37,7 @@ const RecipeCreate = ({ onEdit }) => {
   useEffect(_ => {
     api.getTags()
       .then(tags => {
-        setValue(tags.map(tag => ({ ...tag, value: true })))
+        setValue(tags.map(tag => ({ ...tag, value: false })))
       })
   }, [])
 
@@ -110,6 +110,7 @@ const RecipeCreate = ({ onEdit }) => {
         }}
       >
         <Input
+          data_test = 'recipe_create'
           label='Название рецепта'
           onChange={e => {
             const value = e.target.value
@@ -204,6 +205,7 @@ const RecipeCreate = ({ onEdit }) => {
         </div>
         <div className={styles.cookingTime}>
           <Input
+            data_test = 'recipe_create'
             label='Время приготовления'
             className={styles.ingredientsTimeInput}
             labelClassName={styles.cookingTimeLabel}
@@ -217,6 +219,7 @@ const RecipeCreate = ({ onEdit }) => {
           <div className={styles.cookingTimeUnit}>мин.</div>
         </div>
         <Textarea
+          data_test='recipe_create'
           label='Описание рецепта'
           onChange={e => {
             const value = e.target.value

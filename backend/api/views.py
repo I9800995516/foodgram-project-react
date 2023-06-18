@@ -8,11 +8,12 @@ from recipes.models import (Favorite, Ingredient, Recipe,
 from rest_framework import pagination, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from .filters import RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsSuperUserIsAdminIsModeratorIsAuthor
 from .serializers import (FavoriteSerializer, IngredientSerializers,
-                          RecipeSerializer, RecipeKorzinaSerializer,
+                          RecipeKorzinaSerializer, RecipeSerializer,
                           TagSerializers)
 
 
@@ -95,7 +96,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         file_name = 'korzina.txt'
         response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        response['Список покупок'] = f'attachment; filename={file_name}'
         response.write(''.join(output))
 
         return response
@@ -122,7 +123,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         filename = 'korzina.txt'
 
         response = HttpResponse(content, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        response['Список покупок'] = f'attachment; filename={filename}'
 
         return response
 

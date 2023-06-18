@@ -9,7 +9,7 @@ from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         PrimaryKeyRelatedField,
                                         SerializerMethodField)
 from rest_framework.validators import UniqueTogetherValidator
-from users.serializers import CustomUserCreateSerializer
+from users.serializers import UniqueUserCreateSerializer
 
 
 class TagSerializers(ModelSerializer):
@@ -44,7 +44,7 @@ class IngredientInRecipeSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
-    author = CustomUserCreateSerializer()
+    author = UniqueUserCreateSerializer()
     tags = TagSerializers(many=True, read_only=True)
     ingredients = IngredientInRecipeSerializer(
         source='recipeingredients',
@@ -103,7 +103,7 @@ class RecipeSerializer(ModelSerializer):
 
 
 class RecipeCreateSerializer(ModelSerializer):
-    author = CustomUserCreateSerializer(
+    author = UniqueUserCreateSerializer(
         read_only=True,
         default=CurrentUserDefault(),
     )

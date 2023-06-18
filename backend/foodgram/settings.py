@@ -80,10 +80,22 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', default='postgres'),
         'USER': os.getenv('POSTGRES_USER', default='postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='localhost'),
-        'PORT': os.getenv('DB_PORT', default=5432),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432'),
     },
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv(
+#             'DB_ENGINE', default='django.db.backends.postgresql',
+#         ),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+#         'PORT': os.getenv('DB_PORT', default=5432),
+#     },
+# }
 
 # DATABASES = {
 #    'default': {
@@ -150,11 +162,11 @@ REST_FRAMEWORK = {
 
 
 DJOSER = {
-    
+
     'SERIALIZERS': {
-        'user_create': 'users.serializers.CustomUserCreateSerializer',
-        'user': 'users.serializers.CustomUserCreateSerializer',
-        'current_user': 'users.serializers.CustomUserCreateSerializer',
+        'user_create': 'users.serializers.UniqueUserCreateSerializer',
+        'user': 'users.serializers.UniqueUserCreateSerializer',
+        'current_user': 'users.serializers.UniqueUserCreateSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'username_reset': 'djoser.email.UsernameResetEmail',
     },
@@ -171,7 +183,7 @@ DJOSER = {
 
 
 TEXT_LENGTH = 15
-PER_PAGE = 10
+PER_PAGE = 6
 EMAIL = "I9800995516@yandex.ru"
 EMAIL_LENGTH = 254
 NAME_LENGTH = 150

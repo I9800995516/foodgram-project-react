@@ -28,7 +28,7 @@ class UserCreateMixin:
         return user
 
 
-class CustomUserCreateSerializer(UserSerializer):
+class UniqueUserCreateSerializer(UserSerializer):
     '''Пользовательский сериализатор.'''
 
     is_subscribed = SerializerMethodField(read_only=True)
@@ -61,7 +61,7 @@ class CustomUserCreateSerializer(UserSerializer):
         return representation
 
 
-class GetFollowSerializer(CustomUserCreateSerializer):
+class GetFollowSerializer(UniqueUserCreateSerializer):
     recipes = SerializerMethodField(method_name='get_recipes')
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True,

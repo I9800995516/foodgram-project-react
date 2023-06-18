@@ -1,17 +1,18 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from rest_framework.exceptions import ValidationError
 
 
-def validate_user(value):
-    if value == 'admin':
-        raise ValidationError("Имя пользователя не может быть 'admin'!")
-
-
-class UserValidator(UnicodeUsernameValidator):
-    regex = r'^[\w.@+-]+\Z'
+class UsernameValidator(UnicodeUsernameValidator):
+    regex = r'^[\w.@+-]+$'
     flags = 0
     message = (
-        'Имя пользователя может включать:'
-        ' буквы, цифры '
-        'и знаки @ . + -'
+        'Уникальный юзернейм. '
+        'В имени пользователя допускаются следующие символы: '
+        'буквы (a-z, A-Z), '
+        'цифры (0-9), '
+        'подчеркивание (_), '
+        'точка (.), '
+        'собака (@), '
+        'знак плюса (+), '
+        'и тире (-). '
+        'Не допускаются символы: #, $, % и пробелы.'
     )

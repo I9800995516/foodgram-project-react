@@ -1,86 +1,88 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from .validators import (
-    validate_user,
-    UserValidator,
-)
-
-NAME_LENGTH = 150
-MAIL_LENGTH = 254
-
-
-class UserRole:
-    USER = 'user'
-    ADMIN = 'admin'
-    choices = [
-        (USER, 'USER'),
-        (ADMIN, 'ADMIN'),
-    ]
+from django.db.models import F, Q
+from foodgram.settings import EMAIL_LENGTH, NAME_LENGTH
+from .validators import UsernameValidator
 
 
 class User(AbstractUser):
-    """Модель пользователя."""
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = (
-        'username',
-        'first_name',
-        'last_name',
-    )
+    """Модель создания пользователя."""
 
-    first_name = models.CharField(
-        verbose_name='Имя',
-        max_length=NAME_LENGTH)
-    last_name = models.CharField(
-        max_length=NAME_LENGTH,
-        verbose_name='Фамилия')
+    USER = 'user'
+    ADMIN = 'admin'
+
+    USER_ROLES = [
+        (USER, 'user'),
+        (ADMIN, 'admin'),
+    ]
+
+    username_validade = UsernameValidator()
     email = models.EmailField(
-        max_length=MAIL_LENGTH,
-        verbose_name='email',
-        unique=True)
+        max_length=EMAIL_LENGTH,
+        unique=True,
+    )
+    first_name = models.CharField('Имя',
+                                  max_length=NAME_LENGTH,
+                                  blank=True,
+                                  )
+    last_name = models.CharField('Фамилия',
+                                 max_length=NAME_LENGTH,
+                                 blank=True,
+                                 )
     username = models.CharField(
-        verbose_name='username',
         max_length=NAME_LENGTH,
         unique=True,
-        validators=(validate_user, UserValidator()),
+        validators=[username_validade],
+        verbose_name='Username')
+
+    role = models.CharField(
+        verbose_name='Роль пользователя',
+        max_length=20,
+        choices=USER_ROLES,
+        default='user',
     )
 
+    @property
+    def is_admin(self):
+        """Проверка пользователя на наличие прав администратора."""
+        return self.role == self.ADMIN or self.is_superuser
+
+    @property
+    def is_user(self):
+        """Проверка пользователя на наличие стандартных прав."""
+        return self.role == self.USER
+
     class Meta:
-        ordering = ('username', )
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        ordering = (
+            'username',
+            'email',
+        )
 
-    def __str__(self):
-        return self.username
 
-
-class Follower(models.Model):
-    """Модель подписки на автора."""
+class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='followers',
-        verbose_name='Подписчик')
+        related_name='follower',
+        verbose_name='Подписчик',
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='followings',
-        verbose_name='Автор')
+        related_name='author',
+        verbose_name='Автор',
+    )
 
     class Meta:
-        ordering = ('-id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'author'),
-                name='unique_follow_constraint',
-            ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F('author')),
-                name='no_self_follow_constraint',
-            ),
-        ]
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-
-    def __str__(self) -> str:
-        return f"{self.user} подписан на {self.author}"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='follow',
+            ),
+            models.CheckConstraint(check=~Q(user=F('author')),
+                                   name='following'),
+        ]

@@ -142,3 +142,11 @@ media/
 
 backend/static/
 .backend/static/
+
+node_modules
+.node_modules
+
+package-lock.json
+
+frontend0
+.vscode

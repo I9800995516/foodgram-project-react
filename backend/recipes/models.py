@@ -109,14 +109,14 @@ class Recipe(models.Model):
         verbose_name='Тег',
     )
 
-    class Meta():
+    class Meta:
         ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'name'],
-                name='уникальное имя пользователя',
+                name='unique_recipe_author_name',
             ),
         ]
 
@@ -128,13 +128,13 @@ class RecipeIngredientsMerge(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipeingredamount',
+        related_name='recipe_ingredients_merge',
     )
 
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recipeingredamount',
+        related_name='ingredient_ingredients_merge',
     )
 
     amount = models.CharField('Количество', max_length=RECIPE_NAME_MAX_LENGTH)
@@ -145,7 +145,7 @@ class RecipeIngredientsMerge(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='уникальный ингредиент рецепта',
+                name='unique_recipe_ingredient_merge',
             ),
         ]
 
@@ -171,7 +171,7 @@ class Favorite(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-                name='избранный',
+                name='is_favorited',
             ),
         ]
 
@@ -182,24 +182,19 @@ class Favorite(models.Model):
 class RecipeKorzina(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='korzina',
+        related_query_name='recipekorzina',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='korzina',
+        related_query_name='recipekorzina',
         on_delete=models.CASCADE,
     )
 
     class Meta:
         verbose_name = 'Рецепт в списке покупок'
         verbose_name_plural = 'Рецепты в списке покупок'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_korzina',
-            ),
-        ]
+        unique_together = ['user', 'recipe']
 
     def __str__(self):
         return f'{self.recipe.name} в списке покупок для {self.user.username}'

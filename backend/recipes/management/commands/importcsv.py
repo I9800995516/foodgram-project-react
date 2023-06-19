@@ -17,6 +17,8 @@ class Command(BaseCommand):
     help = 'Загрузка ингредиентов в базу данных'
 
     def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE('Началась загрузка данных.'))
+
         try:
             csv_reader = get_reader('ingredients.csv')
             rows = list(csv_reader)

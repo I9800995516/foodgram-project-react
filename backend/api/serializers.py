@@ -1,9 +1,7 @@
 from django.core.exceptions import ValidationError
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (
-    Favorite, Ingredient, Recipe,
-    RecipeIngredientsMerge, RecipeKorzina, Tag,
-)
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         ModelSerializer,
                                         PrimaryKeyRelatedField,

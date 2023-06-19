@@ -8,6 +8,7 @@ from recipes.models import (Favorite, Ingredient, Recipe,
 from rest_framework import pagination, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .filters import IngredientFiltration
 
 from .filters import RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
@@ -27,10 +28,10 @@ class TagViewSet(CreateListDestroyViewSet):
 class IngredientViewSet(CreateListDestroyViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializers
-    filter_backends = (DjangoFilterBackend,)
+    http_method_names = ['get']
+    filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
     permission_classes = (permissions.AllowAny,)
-    http_method_names = ['get']
     pagination_class = None
 
 

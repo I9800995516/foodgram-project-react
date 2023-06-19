@@ -1,13 +1,13 @@
 
+from django.contrib.auth.models import AnonymousUser
 from django.db import IntegrityError, transaction
 from django.db.utils import IntegrityError
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Recipe
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
-from rest_framework import status
 
 from .models import Follow, User
 
@@ -17,9 +17,7 @@ class UserCreateMixin:
         try:
             user = self.perform_create(validated_data)
         except IntegrityError:
-            raise serializers.ValidationError(
-                'Не удалось создать пользователя',
-        )
+            raise serializers.ValidationError('Не удалось создать пользователя')
         return user
 
     def perform_create(self, validated_data):
@@ -29,8 +27,6 @@ class UserCreateMixin:
 
 
 class UniqueUserCreateSerializer(UserSerializer):
-    '''Пользовательский сериализатор.'''
-
     is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
@@ -51,14 +47,13 @@ class UniqueUserCreateSerializer(UserSerializer):
                 return Follow.objects.filter(user=user, author=obj).exists()
         return False
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if not self.context.get('request').user.is_authenticated:
-            representation['id'] = None
-            representation['username'] = ''
-            representation['is_subscribed'] = False
-            representation.pop('email', None)
-        return representation
+    def create(self, validated_data):
+        user = self.context.get('request').user
+        if not user.is_authenticated or self.context.get(
+            'request',
+        ).method != 'POST':
+            user = AnonymousUser()
+        return super().create(validated_data)
 
 
 class GetFollowSerializer(UniqueUserCreateSerializer):

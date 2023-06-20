@@ -164,3 +164,8 @@ package-lock.json
 .vscode
 
 infra/database
+
+nginx.conf.bak
+
+myenv
+.myenv

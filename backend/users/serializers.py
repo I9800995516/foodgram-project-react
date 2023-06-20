@@ -1,23 +1,13 @@
 
-<<<<<<< HEAD
 from django.contrib.auth.models import AnonymousUser
-=======
->>>>>>> master
 from django.db import IntegrityError, transaction
 from django.db.utils import IntegrityError
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Recipe
-<<<<<<< HEAD
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
-=======
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField
-from rest_framework import status
->>>>>>> master
 
 from .models import Follow, User
 
@@ -27,13 +17,7 @@ class UserCreateMixin:
         try:
             user = self.perform_create(validated_data)
         except IntegrityError:
-<<<<<<< HEAD
             raise serializers.ValidationError('Не удалось создать пользователя')
-=======
-            raise serializers.ValidationError(
-                'Не удалось создать пользователя',
-        )
->>>>>>> master
         return user
 
     def perform_create(self, validated_data):
@@ -42,18 +26,11 @@ class UserCreateMixin:
         return user
 
 
-<<<<<<< HEAD
 class UniqueUserCreateSerializer(UserSerializer):
-=======
-class CustomUserCreateSerializer(UserSerializer):
-    '''Пользовательский сериализатор.'''
-
->>>>>>> master
     is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-<<<<<<< HEAD
         fields = (
             'id',
             'email',
@@ -62,10 +39,6 @@ class CustomUserCreateSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-=======
-        fields = ('id', 'email', 'username',
-                  'first_name', 'last_name', 'is_subscribed')
->>>>>>> master
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
@@ -74,7 +47,6 @@ class CustomUserCreateSerializer(UserSerializer):
                 return Follow.objects.filter(user=user, author=obj).exists()
         return False
 
-<<<<<<< HEAD
     def create(self, validated_data):
         user = self.context.get('request').user
         if not user.is_authenticated or self.context.get(
@@ -85,19 +57,6 @@ class CustomUserCreateSerializer(UserSerializer):
 
 
 class GetFollowSerializer(UniqueUserCreateSerializer):
-=======
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if not self.context.get('request').user.is_authenticated:
-            representation['id'] = None
-            representation['username'] = ''
-            representation['is_subscribed'] = False
-            representation.pop('email', None)
-        return representation
-
-
-class GetFollowSerializer(CustomUserCreateSerializer):
->>>>>>> master
     recipes = SerializerMethodField(method_name='get_recipes')
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True,

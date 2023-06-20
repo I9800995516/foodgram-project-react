@@ -109,22 +109,14 @@ class Recipe(models.Model):
         verbose_name='Тег',
     )
 
-<<<<<<< HEAD
     class Meta:
-=======
-    class Meta():
->>>>>>> master
         ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'name'],
-<<<<<<< HEAD
                 name='unique_recipe_author_name',
-=======
-                name='уникальное имя пользователя',
->>>>>>> master
             ),
         ]
 
@@ -136,21 +128,13 @@ class RecipeIngredientsMerge(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-<<<<<<< HEAD
         related_name='recipe_ingredients_merge',
-=======
-        related_name='recipeingredamount',
->>>>>>> master
     )
 
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-<<<<<<< HEAD
         related_name='ingredient_ingredients_merge',
-=======
-        related_name='recipeingredamount',
->>>>>>> master
     )
 
     amount = models.CharField('Количество', max_length=RECIPE_NAME_MAX_LENGTH)
@@ -161,11 +145,7 @@ class RecipeIngredientsMerge(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-<<<<<<< HEAD
                 name='unique_recipe_ingredient_merge',
-=======
-                name='уникальный ингредиент рецепта',
->>>>>>> master
             ),
         ]
 
@@ -191,11 +171,7 @@ class Favorite(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-<<<<<<< HEAD
                 name='is_favorited',
-=======
-                name='избранный',
->>>>>>> master
             ),
         ]
 
@@ -206,36 +182,19 @@ class Favorite(models.Model):
 class RecipeKorzina(models.Model):
     user = models.ForeignKey(
         User,
-<<<<<<< HEAD
         related_query_name='recipekorzina',
-=======
-        related_name='korzina',
->>>>>>> master
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-<<<<<<< HEAD
         related_query_name='recipekorzina',
-=======
-        related_name='korzina',
->>>>>>> master
         on_delete=models.CASCADE,
     )
 
     class Meta:
         verbose_name = 'Рецепт в списке покупок'
         verbose_name_plural = 'Рецепты в списке покупок'
-<<<<<<< HEAD
         unique_together = ['user', 'recipe']
-=======
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_korzina',
-            ),
-        ]
->>>>>>> master
 
     def __str__(self):
         return f'{self.recipe.name} в списке покупок для {self.user.username}'

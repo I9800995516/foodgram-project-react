@@ -159,8 +159,8 @@ node_modules
 
 package-lock.json
 
-frontend0
 
+..vscode
 .vscode
 
 infra/database

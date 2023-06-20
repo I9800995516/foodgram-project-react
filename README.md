@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## Этап 1
 
 In the `infra` folder, the following files were created for local Docker deployment:
@@ -60,4 +59,3 @@ docker-compose exec backend python manage.py createsuperuser
 Штанова Маргарита 
 Python-разработчик (Backend)
 E-mail: i9800995516@yandex.ru
->>>>>>> master

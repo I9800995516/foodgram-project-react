@@ -1,15 +1,21 @@
 from django_filters import rest_framework as filters
 from recipes.models import Recipe
+<<<<<<< HEAD
 from rest_framework.filters import SearchFilter
+=======
+>>>>>>> master
 
 from users.models import User
 
 
+<<<<<<< HEAD
 class IngredientFiltration(SearchFilter):
 
     search_param = 'name'
 
 
+=======
+>>>>>>> master
 class RecipeSearchFilter(filters.FilterSet):
     author = filters.ModelChoiceFilter(
         queryset=User.objects.all(),

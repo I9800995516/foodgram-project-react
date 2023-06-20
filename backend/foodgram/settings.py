@@ -22,6 +22,10 @@ ALLOWED_HOSTS = ["*"]
 
 
 INSTALLED_APPS = [
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,6 +77,7 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 # Database
 
+<<<<<<< HEAD
 DATABASES = {
     'default': {
         'ENGINE': os.getenv(
@@ -87,6 +92,33 @@ DATABASES = {
 }
 
 
+=======
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+#         'HOST': os.getenv('DB_HOST', default='localhost'),
+#         'PORT': os.getenv('DB_PORT', default=5432),
+#     },
+# }
+
+DATABASES = {
+   'default': {
+       'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+       'NAME': str(os.environ.get('POSTGRES_DB', BASE_DIR / 'db.sqlite3')),
+       'USER': os.environ.get('POSTGRES_USER'),
+       'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+       'HOST': os.environ.get('DB_HOST'),
+       'PORT': os.environ.get('DB_PORT'),
+   }
+}
+
+
+
+
+>>>>>>> master
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,8 +134,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+<<<<<<< HEAD
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
+=======
+AUTHENTICATION_BACKENDS = (
+   "django.contrib.auth.backends.ModelBackend",
+)
+>>>>>>> master
 
 LANGUAGE_CODE = 'ru'
 
@@ -117,7 +155,10 @@ USE_TZ = False
 
 
 AUTH_USER_MODEL = 'users.User'
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
@@ -138,11 +179,19 @@ REST_FRAMEWORK = {
 
 
 DJOSER = {
+<<<<<<< HEAD
 
     'SERIALIZERS': {
         'user_create': 'users.serializers.UniqueUserCreateSerializer',
         'user': 'users.serializers.UniqueUserCreateSerializer',
         'current_user': 'users.serializers.UniqueUserCreateSerializer',
+=======
+    
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
+        'user': 'users.serializers.CustomUserCreateSerializer',
+        'current_user': 'users.serializers.CustomUserCreateSerializer',
+>>>>>>> master
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'username_reset': 'djoser.email.UsernameResetEmail',
     },
@@ -159,7 +208,11 @@ DJOSER = {
 
 
 TEXT_LENGTH = 15
+<<<<<<< HEAD
 PER_PAGE = 6
+=======
+PER_PAGE = 10
+>>>>>>> master
 EMAIL = "I9800995516@yandex.ru"
 EMAIL_LENGTH = 254
 NAME_LENGTH = 150

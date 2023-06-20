@@ -1,13 +1,24 @@
 from django.core.exceptions import ValidationError
 from drf_extra_fields.fields import Base64ImageField
+<<<<<<< HEAD
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredientsMerge, RecipeKorzina, Tag)
+=======
+from recipes.models import (
+    Favorite, Ingredient, Recipe,
+    RecipeIngredientsMerge, RecipeKorzina, Tag,
+)
+>>>>>>> master
 from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         ModelSerializer,
                                         PrimaryKeyRelatedField,
                                         SerializerMethodField)
 from rest_framework.validators import UniqueTogetherValidator
+<<<<<<< HEAD
 from users.serializers import UniqueUserCreateSerializer
+=======
+from users.serializers import CustomUserCreateSerializer
+>>>>>>> master
 
 
 class TagSerializers(ModelSerializer):
@@ -42,7 +53,11 @@ class IngredientInRecipeSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
+<<<<<<< HEAD
     author = UniqueUserCreateSerializer()
+=======
+    author = CustomUserCreateSerializer()
+>>>>>>> master
     tags = TagSerializers(many=True, read_only=True)
     ingredients = IngredientInRecipeSerializer(
         source='recipeingredients',
@@ -101,7 +116,11 @@ class RecipeSerializer(ModelSerializer):
 
 
 class RecipeCreateSerializer(ModelSerializer):
+<<<<<<< HEAD
     author = UniqueUserCreateSerializer(
+=======
+    author = CustomUserCreateSerializer(
+>>>>>>> master
         read_only=True,
         default=CurrentUserDefault(),
     )

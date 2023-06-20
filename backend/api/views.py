@@ -8,13 +8,20 @@ from recipes.models import (Favorite, Ingredient, Recipe,
 from rest_framework import pagination, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+<<<<<<< HEAD
 from .filters import IngredientFiltration
 
+=======
+>>>>>>> master
 from .filters import RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsSuperUserIsAdminIsModeratorIsAuthor
 from .serializers import (FavoriteSerializer, IngredientSerializers,
+<<<<<<< HEAD
                           RecipeKorzinaSerializer, RecipeSerializer,
+=======
+                          RecipeSerializer, RecipeKorzinaSerializer,
+>>>>>>> master
                           TagSerializers)
 
 
@@ -28,10 +35,17 @@ class TagViewSet(CreateListDestroyViewSet):
 class IngredientViewSet(CreateListDestroyViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializers
+<<<<<<< HEAD
     http_method_names = ['get']
     filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
     permission_classes = (permissions.AllowAny,)
+=======
+    filter_backends = (DjangoFilterBackend,)
+    search_fields = ('^name',)
+    permission_classes = (permissions.AllowAny,)
+    http_method_names = ['get']
+>>>>>>> master
     pagination_class = None
 
 
@@ -97,7 +111,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         file_name = 'korzina.txt'
         response = HttpResponse(content_type='text/plain')
+<<<<<<< HEAD
         response['Список покупок'] = f'attachment; filename={file_name}'
+=======
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+>>>>>>> master
         response.write(''.join(output))
 
         return response
@@ -124,7 +142,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         filename = 'korzina.txt'
 
         response = HttpResponse(content, content_type='text/plain')
+<<<<<<< HEAD
         response['Список покупок'] = f'attachment; filename={filename}'
+=======
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+>>>>>>> master
 
         return response
 

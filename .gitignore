@@ -131,6 +131,7 @@ dmypy.json
 # .idea
 .idea
 
+<<<<<<< HEAD
 
 migrations
 /migrations
@@ -140,4 +141,24 @@ __pycache__
 static
 /static
 
+=======
+# папки со статикой и медиа
+media/
+
+.migrations
+/migrations
+
+.static
+/static
+
+backend/static/
+.backend/static/
+
+node_modules
+.node_modules
+
+package-lock.json
+
+frontend0
+>>>>>>> master
 .vscode

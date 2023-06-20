@@ -24,6 +24,9 @@ toml==0.10.2
 typing_extensions==4.6.3
 zipp==3.15.0
 reportlab==4.0.4
+<<<<<<< HEAD
 djoser==2.1.0
 django-colorfield==0.6.0
 drf-extra-fields==3.5.0
+=======
+>>>>>>> master

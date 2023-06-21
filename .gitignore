@@ -169,3 +169,6 @@ nginx.conf.bak
 
 myenv
 .myenv
+
+build
+node_modules

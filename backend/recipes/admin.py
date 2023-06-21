@@ -2,18 +2,20 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.utils.translation import gettext_lazy as _
+from foodgram.settings import EMPTY
 
 from .models import Favorite, Ingredient, Recipe, RecipeKorzina, Tag
 
 
 class RecipeIngredList(admin.TabularInline):
     model = Recipe.ingredients.through
+    min_num = 1
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
-    empty_value_display = 'значение отсутствует'
+    empty = EMPTY
 
 
 class AuthorFilter(SimpleListFilter):
@@ -33,11 +35,12 @@ class AuthorFilter(SimpleListFilter):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = (RecipeIngredList,)
     list_display = ('pk', 'name', 'author', 'pub_date')
-    search_fields = ('name',)
     list_filter = (AuthorFilter, 'name', 'tags')
+    search_fields = ('name',)
     related_fields = ('author', 'name', 'tags', 'pub_date')
+    inlines = (RecipeIngredList,)
+    empty = EMPTY
 
     def is_in_favorited(self, instance):
         return instance.favorites.count()

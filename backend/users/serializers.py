@@ -1,5 +1,4 @@
 
-from django.contrib.auth.models import AnonymousUser
 from django.db import IntegrityError, transaction
 from django.db.utils import IntegrityError
 from djoser.serializers import UserSerializer
@@ -17,13 +16,19 @@ class UserCreateMixin:
         try:
             user = self.perform_create(validated_data)
         except IntegrityError:
-            raise serializers.ValidationError('Не удалось создать пользователя')
+            raise serializers.ValidationError(
+                'Не удалось создать пользователя',
+            )
         return user
 
     def perform_create(self, validated_data):
         with transaction.atomic():
-            user = User.objects.create_user(**validated_data)
-        return user
+            password = validated_data.pop(
+                'password', None)
+            user = User.objects.create_user(
+                password=password, **validated_data,
+            )
+            return user
 
 
 class UniqueUserCreateSerializer(UserSerializer):
@@ -38,22 +43,28 @@ class UniqueUserCreateSerializer(UserSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
+            'password',
         )
+        extra_kwargs = {'password': {'write_only': True}}
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
             if hasattr(user, 'email'):
-                return Follow.objects.filter(user=user, author=obj).exists()
+                return self.context.get(
+                    'request',
+                ).user.is_authenticated and Follow.objects.filter(
+                    user=user, author=obj,
+                ).exists()
         return False
 
     def create(self, validated_data):
-        user = self.context.get('request').user
-        if not user.is_authenticated or self.context.get(
-            'request',
-        ).method != 'POST':
-            user = AnonymousUser()
-        return super().create(validated_data)
+        password = validated_data.pop('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
 
 class GetFollowSerializer(UniqueUserCreateSerializer):
@@ -109,13 +120,13 @@ class AddFollowerSerializer(GetFollowSerializer):
 
         if Follow.objects.filter(author=author, user=user).exists():
             raise ValidationError(
-                detail='Вы уже подписаны на этого автора!',
-                code=status.HTTP_400_BAD_REQUEST,
+                default_detail='Вы уже подписаны на этого автора!',
+                default_code=status.HTTP_400_BAD_REQUEST,
             )
         if user == author:
             raise ValidationError(
-                detail="Нелья подписаться на самого себя!",
-                code=status.HTTP_400_BAD_REQUEST,
+                default_detail="Нелья подписаться на самого себя!",
+                default_code=status.HTTP_400_BAD_REQUEST,
             )
         return data
 

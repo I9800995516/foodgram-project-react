@@ -25,7 +25,7 @@ class UsersViewSet(UserViewSet):
         detail=True,
         methods=['post', 'delete'],
         permission_classes=[permissions.IsAuthenticated],
-        authentication_classes=(TokenAuthentication),
+        authentication_classes=[TokenAuthentication],
     )
     def follow(self, request, **kwargs):
         user = request.user
@@ -61,7 +61,7 @@ class UsersViewSet(UserViewSet):
     @action(
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
-        authentication_classes=(TokenAuthentication),
+        authentication_classes=[TokenAuthentication],
     )
     def followings(self, request):
         user = request.user

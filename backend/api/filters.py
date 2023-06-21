@@ -41,5 +41,5 @@ class RecipeSearchFilter(filters.FilterSet):
     def filter_is_in_korzina(self, queryset, name, value):
         user = self.request.user
         if value and user.is_authenticated:
-            return queryset.filter(korzina__user=user)
+            return queryset.filter(recipekorzina__user=user)
         return queryset

@@ -84,8 +84,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_korzina(self, request):
         user = request.user
         ingredients = (
-            RecipeIngredientsMerge.objects.filter(recipe__korzina__user=user)
-            .prefetch_related('recipe___korzina', 'user', 'ingredient')
+            RecipeIngredientsMerge.objects.filter(recipe__recipekorzina__user=user)
+            .prefetch_related('recipe___recipekorzina', 'user', 'ingredient')
             .values_list('ingredient__name', 'ingredient__measurement_unit')
             .annotate(total_amount=Sum('amount'))
         )
@@ -105,7 +105,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_recipe_korzina(self, request):
         user = request.user
         ingredients = RecipeIngredientsMerge.objects.filter(
-            recipe__korzina__user=user,
+            recipe__recipekorzina__user=user,
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit',

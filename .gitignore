@@ -144,6 +144,7 @@ static
 =======
 # папки со статикой и медиа
 media/
+backend/media/
 
 .migrations
 /migrations
@@ -172,3 +173,5 @@ myenv
 
 build
 node_modules
+
+nginx.conf.bak

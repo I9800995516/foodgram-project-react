@@ -7,8 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Follow, User
-from .serializers import (AddFollowerSerializer, GetFollowSerializer,
-                          UniqueUserCreateSerializer)
+from .serializers import (AddFollowerSerializer,
+                          GetFollowSerializer, UserCreateSerializer)
 
 
 class UsersViewSet(UserViewSet):
@@ -16,10 +16,10 @@ class UsersViewSet(UserViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return UniqueUserCreateSerializer
+            return UserCreateSerializer
         if self.action == 'set_password':
             return SetPasswordSerializer
-        return UniqueUserCreateSerializer
+        return UserCreateSerializer
 
     @action(
         detail=True,

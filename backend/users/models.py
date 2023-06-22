@@ -53,6 +53,11 @@ class User(AbstractUser):
         """Проверка пользователя на наличие стандартных прав."""
         return self.role == self.USER
 
+    @property
+    def following(self):
+        """Получение списка пользователей, на которых подписан."""
+        return User.objects.filter(follower__author=self)
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'

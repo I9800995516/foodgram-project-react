@@ -11,7 +11,10 @@ from rest_framework.response import Response
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsSuperUserIsAdminIsModeratorIsAuthor
+from .permissions import (
+    IsSuperUserIsAdminIsModeratorIsAuthor, IsRecipeAuthorOrReadOnly
+)
+
 from .serializers import (FavoriteSerializer, IngredientSerializers,
                           RecipeKorzinaSerializer, RecipeSerializer,
                           TagSerializers)
@@ -36,9 +39,7 @@ class IngredientViewSet(CreateListDestroyViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    pagination.PageNumberPagination.page_size = 6
-    permission_classes = (IsSuperUserIsAdminIsModeratorIsAuthor,)
-    filter_fields = ('author',)
+    permission_classes = (IsRecipeAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
 
@@ -84,7 +85,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_korzina(self, request):
         user = request.user
         ingredients = (
-            RecipeIngredientsMerge.objects.filter(recipe__recipekorzina__user=user)
+            RecipeIngredientsMerge.objects.filter(
+                recipe__recipekorzina__user=user,
+            )
             .prefetch_related('recipe___recipekorzina', 'user', 'ingredient')
             .values_list('ingredient__name', 'ingredient__measurement_unit')
             .annotate(total_amount=Sum('amount'))

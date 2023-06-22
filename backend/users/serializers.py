@@ -1,73 +1,54 @@
 
-from django.db import IntegrityError, transaction
-from django.db.utils import IntegrityError
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Recipe
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
+
 from .models import Follow, User
 
 
-class UserCreateMixin:
-    def create(self, validated_data):
-        try:
-            user = self.perform_create(validated_data)
-        except IntegrityError:
-            raise serializers.ValidationError(
-                'Не удалось создать пользователя',
-            )
-        return user
-
-    def perform_create(self, validated_data):
-        with transaction.atomic():
-            password = validated_data.pop(
-                'password', None)
-            user = User.objects.create_user(
-                password=password, **validated_data,
-            )
-            return user
-
-
-class UniqueUserCreateSerializer(UserSerializer):
+class FieldUserSerializer(UserSerializer):
+    """Сериализатор пользователя с дополнительным полем."""
     is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = (
-            'id',
             'email',
+            'id',
             'username',
             'first_name',
             'last_name',
             'is_subscribed',
+        )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if self.context.get('request').user.is_anonymous:
+            return False
+        return obj.following.filter(user=request.user).exists()
+
+
+class UserCreateSerializer(UserCreateSerializer):
+    """Сериализатор создания пользователя."""
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
             'password',
         )
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            if hasattr(user, 'email'):
-                return self.context.get(
-                    'request',
-                ).user.is_authenticated and Follow.objects.filter(
-                    user=user, author=obj,
-                ).exists()
-        return False
 
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        instance = self.Meta.model(**validated_data)
-        if password:
-            instance.set_password(password)
-        instance.save()
-        return instance
-
-
-class GetFollowSerializer(UniqueUserCreateSerializer):
+class GetFollowSerializer(FieldUserSerializer):
+    """Сериализатора подписчика."""
     recipes = SerializerMethodField(method_name='get_recipes')
     recipes_count = serializers.IntegerField(
         source='recipes.count', read_only=True,

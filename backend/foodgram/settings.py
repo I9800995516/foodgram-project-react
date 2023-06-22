@@ -127,21 +127,24 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 
+    'SEARCH_PARAM': 'name',
+
 }
 
 
 DJOSER = {
 
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UniqueUserCreateSerializer',
-        'user': 'users.serializers.UniqueUserCreateSerializer',
-        'current_user': 'users.serializers.UniqueUserCreateSerializer',
+        "user_create": "users.serializers.UserCreateSerializer",
+        "user": "users.serializers.FieldUserSerializer",
+        "current_user": "users.serializers.FieldUserSerializer",
+
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'username_reset': 'djoser.email.UsernameResetEmail',
     },
 
     'PERMISSIONS': {
-        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user': ['rest_framework.permissions.IsAuthenticated'],
         'user_list': ['rest_framework.permissions.AllowAny'],
         'token_create': ['rest_framework.permissions.AllowAny'],
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],

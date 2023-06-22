@@ -8,20 +8,6 @@ class IsAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_authenticated and request.user.is_admin)
 
 
-class IsSuperUserOrIsAdminOnly(permissions.BasePermission):
-    """
-    Права на запросы предоставляются
-    суперпользователю Джанго, админу Джанго или
-    пользователю с ролью admin.
-    """
-
-    def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated
-            and (request.user.is_admin)
-        )
-
-
 class IsSuperUserIsAdminIsModeratorIsAuthor(permissions.BasePermission):
     """
     Запросы PATCH и DELETE делает только
@@ -41,15 +27,14 @@ class IsSuperUserIsAdminIsModeratorIsAuthor(permissions.BasePermission):
         )
 
 
-class CurrentUserOrAdmin(permissions.IsAuthenticated):
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        return user.is_staff or obj.pk == user.pk
+class IsRecipeAuthorOrReadOnly(permissions.BasePermission):
+    """Только авто редактирует рецепт."""
 
+    def has_permission(self, request, view):
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated)
 
-class CurrentUserOrAdminOrReadOnly(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj):
-        user = request.user
-        if type(obj) == type(user) and obj == user:
-            return True
-        return request.method in SAFE_METHODS or user.is_staff
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated
+                and obj.author == request.user)

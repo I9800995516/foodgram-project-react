@@ -28,6 +28,3 @@ docker-compose exec backend python manage.py createsuperuser
 
 ## Автор
 
-Штанова Маргарита 
-Python-разработчик (Backend)
-E-mail: i9800995516@yandex.ru

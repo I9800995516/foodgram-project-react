@@ -2,8 +2,7 @@ import base64
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 # from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework.fields import ImageField
 from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         ModelSerializer,
@@ -148,7 +147,7 @@ class FavoriteSerializer(ModelSerializer):
 
 
 class RecipeKorzinaSerializer(ModelSerializer):
-    user = PrimaryKeyRelatedField(
+    author = PrimaryKeyRelatedField(
         read_only=True, default=CurrentUserDefault(),
     )
     recipe = PrimaryKeyRelatedField(
@@ -202,7 +201,6 @@ class RecipeCreateSerializer(ModelSerializer):
     )
 
     def create(self, validated_data):
-        # author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('RecipeIngredients')
         recipe = Recipe.objects.create(**validated_data)
@@ -247,7 +245,11 @@ class RecipeCreateSerializer(ModelSerializer):
         ingredients_list = []
         ingredients_in_recipe = data.get('RecipeIngredients')
         for ingredient in ingredients_in_recipe:
-            if ingredient.get('amount') <= 0:
+            amount = ingredient.get('amount')
+            print(f'Type of amount: {type(amount)}')
+            if not isinstance(amount, int):
+                amount = int(amount)
+            if amount <= 0:
                 raise ValidationError(
                     {
                         'error': 'Ингредиентов не должно быть менее одного!',
@@ -260,7 +262,14 @@ class RecipeCreateSerializer(ModelSerializer):
                     'error': 'Ингредиенты в рецепте не должны повторяться!',
                 },
             )
+
         cooking_time = data.get('cooking_time')
+        if not isinstance(cooking_time, int):
+            raise ValidationError(
+                {
+                    'error': 'Время приготовления должно быть целым числом!',
+                },
+            )
         if cooking_time <= 0:
             raise ValidationError(
                 {

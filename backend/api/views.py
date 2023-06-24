@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import pagination, permissions, status, viewsets
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -16,7 +17,7 @@ from .permissions import (
 )
 
 from .serializers import (FavoriteSerializer, IngredientSerializers,
-                          RecipeKorzinaSerializer, RecipeSerializer,
+                          RecipeKorzinaSerializer, RecipeSerializer, RecipeCreateSerializer,
                           TagSerializers)
 
 
@@ -43,25 +44,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
 
+    # def get_serializer_class(self):
+    #     return RecipeCreateSerializer
     def get_serializer_class(self):
-        return RecipeSerializer
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
-        serializer.save()
+        serializer.save(author=self.request.user)
 
     def add_del(self, request, pk, model, serializer):
         if request.method == 'POST':
             recipe = get_object_or_404(Recipe, id=pk)
-            if model.objects.filter(recipe=recipe, user=request.user).exists():
+            if model.objects.filter(recipe=recipe, author=request.user).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             model.objects.create(recipe=recipe, user=request.user)
         elif request.method == 'DELETE':
             action_model = get_object_or_404(
                 model,
-                user=request.user,
+                author=request.user,
                 recipe=get_object_or_404(Recipe, pk=pk),
             )
             action_model.delete()

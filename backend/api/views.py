@@ -5,20 +5,18 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredientsMerge, RecipeKorzina, Tag)
-from rest_framework import pagination, permissions, status, viewsets
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated 
 from rest_framework.response import Response
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (
-    IsSuperUserIsAdminIsModeratorIsAuthor, IsRecipeAuthorOrReadOnly
-)
-
+from .permissions import (IsRecipeAuthorOrReadOnly,
+                          IsSuperUserIsAdminIsModeratorIsAuthor)
 from .serializers import (FavoriteSerializer, IngredientSerializers,
-                          RecipeKorzinaSerializer, RecipeSerializer, RecipeCreateSerializer,
-                          TagSerializers)
+                          RecipeCreateSerializer, RecipeKorzinaSerializer,
+                          RecipeSerializer, TagSerializers)
 
 
 class TagViewSet(CreateListDestroyViewSet):
@@ -44,8 +42,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
 
-    # def get_serializer_class(self):
-    #     return RecipeCreateSerializer
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeSerializer

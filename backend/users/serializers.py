@@ -25,11 +25,18 @@ class FieldUserSerializer(UserSerializer):
             'is_subscribed',
         )
 
+    # def get_is_subscribed(self, obj):
+    #     request = self.context.get('request')
+    #     if self.context.get('request').user.is_anonymous:
+    #         return False
+    #     # return obj.following.filter(user=request.user).exists()
+    #     return True
+
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if self.context.get('request').user.is_anonymous:
+        user = self.context.get('request').user
+        if user.is_anonymous:
             return False
-        return obj.following.filter(user=request.user).exists()
+        return Follow.objects.filter(user=user, author=obj).exists()
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -106,7 +113,7 @@ class AddFollowerSerializer(GetFollowSerializer):
             )
         if user == author:
             raise ValidationError(
-                default_detail="Нелья подписаться на самого себя!",
+                default_detail='Нелья подписаться на самого себя!',
                 default_code=status.HTTP_400_BAD_REQUEST,
             )
         return data

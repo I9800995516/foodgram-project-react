@@ -17,6 +17,13 @@ class User(AbstractUser):
         (ADMIN, 'admin'),
     ]
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+    ]
+
     username_validade = UsernameValidator()
     email = models.EmailField(
         max_length=EMAIL_LENGTH,
@@ -66,6 +73,9 @@ class User(AbstractUser):
             'email',
         )
 
+    def __str__(self):
+        return self.username[:15]
+
 
 class Follow(models.Model):
     """Модель подписчика."""
@@ -93,3 +103,6 @@ class Follow(models.Model):
             models.CheckConstraint(check=~Q(user=F('author')),
                                    name='following'),
         ]
+
+    def __str__(self):
+        return f'{self.user.username[:20]} follows {self.author.username[:20]}'

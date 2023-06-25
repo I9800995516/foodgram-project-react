@@ -156,12 +156,12 @@ class RecipeIngredientsMerge(models.Model):
 class Favorite(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='favorites',
+        related_name='favorite',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='favorites',
+        related_name='favorite',
         on_delete=models.CASCADE,
     )
 
@@ -182,12 +182,12 @@ class Favorite(models.Model):
 class RecipeKorzina(models.Model):
     user = models.ForeignKey(
         User,
-        related_query_name='recipekorzina',
+        related_query_name='shopping',
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_query_name='recipekorzina',
+        related_query_name='shopping',
         on_delete=models.CASCADE,
     )
 

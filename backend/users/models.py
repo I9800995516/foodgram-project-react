@@ -1,4 +1,6 @@
+
 from django.contrib.auth.models import AbstractUser
+
 from django.db import models
 from django.db.models import F, Q
 from foodgram.settings import EMAIL_LENGTH, NAME_LENGTH
@@ -79,7 +81,7 @@ class User(AbstractUser):
 
 class Follow(models.Model):
     """Модель подписчика."""
-    user = models.ForeignKey(
+    follower = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='follower',
@@ -97,12 +99,12 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='follow',
+                fields=['follower', 'author'],
+                name='unique_follow',
             ),
-            models.CheckConstraint(check=~Q(user=F('author')),
-                                   name='following'),
+            models.CheckConstraint(check=~Q(follower=F('author')),
+                                   name='self_follow'),
         ]
 
     def __str__(self):
-        return f'{self.user.username[:20]} follows {self.author.username[:20]}'
+        return f'{self.follower.username[:25]} follows {self.author.username[:25]}'

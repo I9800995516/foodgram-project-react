@@ -65,7 +65,8 @@ class UsersViewSet(UserViewSet):
     )
     def followings(self, request):
         user = request.user
-        queryset = User.objects.filter(following__user=user)
+        # queryset = User.objects.filter(following__user=user)
+        queryset = user.following.all()
         pages = self.paginate_queryset(queryset)
 
         serializer = GetFollowSerializer(

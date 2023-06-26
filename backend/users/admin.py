@@ -22,10 +22,10 @@ class AdminUser(UserAdmin):
 class FollowAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
-        'user',
+        'follower',
         'author',
     )
     search_fields = (
-        'user__username',
+        'follower__username',
         'author__username',
     )

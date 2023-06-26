@@ -10,6 +10,15 @@ from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
 from users.serializers import FieldUserSerializer
+from rest_framework import serializers
+from djoser.serializers import UserSerializer as DjoserUserSerializer
+
+
+class UserSerializer(DjoserUserSerializer):
+    is_subscribed = serializers.BooleanField(default=False)
+
+    class Meta(DjoserUserSerializer.Meta):
+        fields = DjoserUserSerializer.Meta.fields + ("is_subscribed",)
 
 
 class Base64ImageField(ImageField):
@@ -25,13 +34,13 @@ class Base64ImageField(ImageField):
 class TagSerializers(ModelSerializer):
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class IngredientSerializers(ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientInRecipeSerializer(ModelSerializer):
@@ -147,7 +156,7 @@ class FavoriteSerializer(ModelSerializer):
 
 
 class RecipeKorzinaSerializer(ModelSerializer):
-    author = PrimaryKeyRelatedField(
+    user = PrimaryKeyRelatedField(
         read_only=True, default=CurrentUserDefault(),
     )
     recipe = PrimaryKeyRelatedField(

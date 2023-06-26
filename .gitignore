@@ -159,3 +159,5 @@ myenv
 .myenv
 build/
 node_modules/
+
+*media

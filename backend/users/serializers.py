@@ -29,7 +29,7 @@ class FieldUserSerializer(UserSerializer):
     #     request = self.context.get('request')
     #     if self.context.get('request').user.is_anonymous:
     #         return False
-    #     # return obj.following.filter(user=request.user).exists()
+    #     # return obj.Following.filter(user=request.user).exists()
     #     return True
 
     def get_is_subscribed(self, obj):

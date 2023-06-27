@@ -1,11 +1,9 @@
 from colorfield.fields import ColorField
-from django.core.validators import RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from foodgram.settings import (INGREDIENT_MAX_LENGTH, RECIPE_NAME_MAX_LENGTH,
                                TAG_MAX_LENGTH)
 from users.models import User
-
-from django.core.validators import MinValueValidator
 
 
 class Ingredient(models.Model):
@@ -21,7 +19,7 @@ class Ingredient(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'], name='unique_ingredient',
-            )
+            ),
         ]
 
     def __str__(self):
@@ -126,7 +124,7 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         related_name='favorites',
-        verbose_name="Рецепт",
+        verbose_name='Рецепт',
         on_delete=models.CASCADE,
     )
 
@@ -150,13 +148,11 @@ class RecipeIngredientsMerge(models.Model):
         on_delete=models.CASCADE,
         related_name='recipe_ingredients_merge',
     )
-
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         related_name='ingredient_ingredients_merge',
     )
-
     amount = models.PositiveSmallIntegerField(
         'Количество',
         validators=[

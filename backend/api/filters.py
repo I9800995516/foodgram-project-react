@@ -1,10 +1,7 @@
-from django_filters import BooleanFilter
-from django_filters import rest_framework
 from django_filters import rest_framework as filters
-from recipes.models import Recipe, RecipeKorzina
 from rest_framework.filters import SearchFilter
-from users.models import Follow, User
-from recipes.models import Favorite, RecipeKorzina
+from recipes.models import Recipe
+from users.models import User
 
 
 class IngredientFiltration(SearchFilter):
@@ -12,11 +9,15 @@ class IngredientFiltration(SearchFilter):
 
 
 class RecipeSearchFilter(filters.FilterSet):
-    
+
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
-    is_favorited = filters.BooleanFilter(field_name='favorites', method='filter_is_favorited')
-    is_in_shopping_cart = filters.BooleanFilter(field_name='shopping', method='filter_is_in_shopping_cart')
+    is_favorited = filters.BooleanFilter(
+        field_name='favorites', method='filter_is_favorited',
+    )
+    is_in_shopping_cart = filters.BooleanFilter(
+        field_name='shopping', method='filter_is_in_shopping_cart',
+    )
 
     class Meta:
         model = Recipe

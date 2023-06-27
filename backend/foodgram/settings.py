@@ -1,19 +1,24 @@
 import os
+import pathlib
+from api.pagination import CustomPagination
+
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv(
-    "SECRET_KEY", default="p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs",
+    'SECRET_KEY', default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs',
 )
 
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
@@ -47,7 +52,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodgram.urls'
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -69,36 +74,52 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 # Database
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv(
+#             'DB_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+#         # 'HOST': os.getenv('DB_HOST', default='db'),
+#         'HOST': os.getenv('DB_HOST', default='localhost'),
+#         'PORT': os.getenv('DB_PORT', default='5432'),
+#     },
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv(
-            'DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='postgres'),
-        'USER': os.getenv('POSTGRES_USER', default='postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        # 'HOST': os.getenv('DB_HOST', default='db'),
-        'HOST': os.getenv('DB_HOST', default='localhost'),
-        'PORT': os.getenv('DB_PORT', default='5432'),
-    },
+       'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+       'NAME': os.environ.get('POSTGRES_DB', BASE_DIR.joinpath('db.sqlite3')),
+       'USER': os.environ.get('POSTGRES_USER'),
+       'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+       'HOST': os.environ.get('DB_HOST'),
+       'PORT': os.environ.get('DB_PORT'),
+    }
 }
+
 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
-AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
 
 
 LANGUAGE_CODE = 'ru'
@@ -129,6 +150,7 @@ REST_FRAMEWORK = {
     ],
 
     'SEARCH_PARAM': 'name',
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
 
 }
 
@@ -136,9 +158,9 @@ REST_FRAMEWORK = {
 DJOSER = {
 
     'SERIALIZERS': {
-        "user_create": "users.serializers.UserCreateSerializer",
-        "user": "users.serializers.FieldUserSerializer",
-        "current_user": "users.serializers.FieldUserSerializer",
+        'user_create': 'users.serializers.UserCreateSerializer',
+        'user': 'users.serializers.FieldUserSerializer',
+        'current_user': 'users.serializers.FieldUserSerializer',
 
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'username_reset': 'djoser.email.UsernameResetEmail',
@@ -158,7 +180,7 @@ DJOSER = {
 
 TEXT_LENGTH = 15
 PER_PAGE = 6
-EMAIL = "I9800995516@yandex.ru"
+EMAIL = 'I9800995516@yandex.ru'
 EMAIL_LENGTH = 254
 NAME_LENGTH = 150
 TAG_MAX_LENGTH = 200

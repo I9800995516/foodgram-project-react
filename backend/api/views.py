@@ -1,20 +1,21 @@
-from api.recipepdf import recipe_pdf_download
 from django.db.models import Sum
+from rest_framework.permissions import AllowAny
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
+from api.recipepdf import recipe_pdf_download
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import (IsRecipeAuthorOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
-from .serializers import (FavoriteSerializer, IngredientSerializers,
+from .serializers import (FavoriteSerializer, IngredientNoAmountSerializer,
                           RecipeCreateSerializer, RecipeKorzinaSerializer,
                           RecipeSerializer, TagSerializers)
 
@@ -26,29 +27,22 @@ class TagViewSet(CreateListDestroyViewSet):
     pagination_class = None
 
 
-# class IngredientViewSet(CreateListDestroyViewSet):
-#     queryset = Ingredient.objects.all()
-#     serializer_class = IngredientSerializers
-#     http_method_names = ['get']
-#     filter_backends = (IngredientFiltration,)
-#     search_fields = ('^name',)
-#     permission_classes = (permissions.AllowAny,)
-#     pagination_class = None
-
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializers
+    serializer_class = IngredientNoAmountSerializer
     pagination_class = None
     http_method_names = ['get']
     filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
     permission_classes = (permissions.AllowAny,)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (IsRecipeAuthorOrReadOnly,)
+    # permission_classes = (IsRecipeAuthorOrReadOnly,)
+    permission_classes = [AllowAny]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
     http_method_names = ('get', 'post', 'delete', 'patch')
@@ -67,13 +61,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def add_del(self, request, pk, model, serializer):
         if request.method == 'POST':
             recipe = get_object_or_404(Recipe, id=pk)
-            if model.objects.filter(recipe=recipe, author=request.user).exists():
+            if model.objects.filter(recipe=recipe, user=request.user).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            model.objects.create(recipe=recipe, author=request.user)
+            model.objects.create(
+                recipe=recipe, user=request.user, author=request.user,
+            )
         elif request.method == 'DELETE':
             action_model = get_object_or_404(
                 model,
-                author=request.user,
+                user=request.user,
                 recipe=get_object_or_404(Recipe, pk=pk),
             )
             action_model.delete()
@@ -81,7 +77,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         serializer = serializer(recipe)
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
 
     @action(methods=['post', 'delete'], detail=True)
     def favorite(self, request, pk):
@@ -147,3 +142,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=[IsSuperUserIsAdminIsModeratorIsAuthor])
     def recipe_pdf_download(self, request):
         return recipe_pdf_download(request)
+
+    @action(detail=True, methods=['get'])
+    def custom_retrieve(self, request, pk=None):
+        return self.retrieve(request)

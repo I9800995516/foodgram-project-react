@@ -1,11 +1,10 @@
 
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Recipe
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
-
+from recipes.models import Recipe
 
 from .models import Follow, User
 
@@ -36,7 +35,7 @@ class FieldUserSerializer(UserSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
+        return Follow.objects.filter(follower=user, author=obj).exists()
 
 
 class UserCreateSerializer(UserCreateSerializer):

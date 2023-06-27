@@ -161,3 +161,6 @@ build/
 node_modules/
 
 *media
+
+db.sqlite3
+db.sqlite3-journal

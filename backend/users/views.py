@@ -7,8 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Follow, User
-from .serializers import (AddFollowerSerializer,
-                          GetFollowSerializer, UserCreateSerializer)
+from .serializers import (AddFollowerSerializer, GetFollowSerializer,
+                          UserCreateSerializer)
 
 
 class UsersViewSet(UserViewSet):
@@ -40,7 +40,7 @@ class UsersViewSet(UserViewSet):
             serializer = AddFollowerSerializer(
                 author,
                 data=request.data,
-                context={"request": request},
+                context={'request': request},
             )
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
@@ -65,7 +65,7 @@ class UsersViewSet(UserViewSet):
     )
     def followings(self, request):
         user = request.user
-        # queryset = User.objects.filter(following__user=user)
+        queryset = User.objects.filter(following__user=user)
         queryset = user.following.all()
         pages = self.paginate_queryset(queryset)
 

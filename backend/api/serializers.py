@@ -1,32 +1,33 @@
 import base64
+
 from django.core.files.base import ContentFile
-from django.core.exceptions import ValidationError
-# from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredientsMerge, RecipeKorzina, Tag)
+from djoser.serializers import UserSerializer as DjoserUserSerializer
+from rest_framework import serializers
 from rest_framework.fields import ImageField
 from rest_framework.serializers import (CharField, CurrentUserDefault,
                                         ModelSerializer,
                                         PrimaryKeyRelatedField,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from users.serializers import FieldUserSerializer
-from rest_framework import serializers
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from users.models import User
 
 
 class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.BooleanField(default=False)
 
     class Meta(DjoserUserSerializer.Meta):
-        fields = DjoserUserSerializer.Meta.fields + ("is_subscribed",)
+        fields = DjoserUserSerializer.Meta.fields + ('is_subscribed',)
 
 
 class Base64ImageField(ImageField):
     def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith("data:image"):
-            format, imgstr = data.split(";base64,")
-            ext = format.split("/")[-1]
-            data = ContentFile(base64.b64decode(imgstr), name="temp." + ext)
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
         return super().to_internal_value(data)
 
@@ -37,7 +38,15 @@ class TagSerializers(ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
-class IngredientSerializers(ModelSerializer):
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed'
+        ]
+
+
+class IngredientNoAmountSerializer(ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
@@ -63,8 +72,8 @@ class IngredientInRecipeSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
-    author = FieldUserSerializer()
     tags = TagSerializers(many=True, read_only=True)
+    author = FieldUserSerializer()
     ingredients = IngredientInRecipeSerializer(
         source='recipeingredients',
         many=True,
@@ -103,16 +112,16 @@ class RecipeSerializer(ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
+            'id',
+            'tags',
             'author',
-            'name',
             'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
             'image',
             'text',
             'cooking_time',
-            'pub_date',
-            'tags',
-            'is_favorited',
-            'is_in_shopping_cart',
         )
         validators = [
             UniqueTogetherValidator(
@@ -124,29 +133,32 @@ class RecipeSerializer(ModelSerializer):
 
 class FavoriteSerializer(ModelSerializer):
     user = PrimaryKeyRelatedField(
-        read_only=True, default=CurrentUserDefault())
+        read_only=True, default=CurrentUserDefault(),
+    )
     recipe = PrimaryKeyRelatedField(
         queryset=Recipe.objects.all(),
         write_only=True,
     )
 
     def create(self, validated_data):
-        return Favorite.objects.create(
-            user=self.context.get('request').user, **validated_data)
+        request = self.context.get('request')
+        user = request.user
+        recipe = validated_data.get('recipe')
+
+        if Favorite.objects.filter(recipe=recipe, user=user).exists():
+            raise ValidationError('Этот рецепт уже был добавлен в избранное!')
+
+        favorite = Favorite.objects.create(
+            user=user, recipe=recipe, author=user,
+        )
+        return favorite
 
     def validate(self, data):
-        object = Favorite.objects.filter(
-            recipe=data['recipe'],
-            user=self.context['request'].user,
-        )
-        if self.context['request'].method == 'DELETE':
-            raise ValidationError(
-                'Этот рецепт не был добавлен в избранное!',
-            )
-        if self.context['request'].method == 'POST' and object.exists():
-            raise ValidationError(
-                'Этот рецепт уже был добавлен в избранное!',
-            )
+        recipe = data['recipe']
+        user = self.context['request'].user
+
+        if Favorite.objects.filter(recipe=recipe, user=user).exists():
+            raise ValidationError('Этот рецепт уже был добавлен в избранное!')
 
         return data
 
@@ -297,3 +309,23 @@ class RecipeCreateSerializer(ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+
+
+class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient.id',
+    )
+    name = serializers.CharField(
+        source='ingredient.name',
+        read_only=True,
+    )
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit',
+        read_only=True,
+    )
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngredientsMerge
+        fields = ('id', 'name', 'measurement_unit', 'amount')

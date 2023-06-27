@@ -10,7 +10,7 @@ def recipe_pdf_download(request):
 
     width, height = p._pagesize
 
-    title = "Список рецептов"
+    title = 'Список рецептов'
     title_font_size = 18
 
     title_width = p.stringWidth(title, size=title_font_size)
@@ -19,7 +19,7 @@ def recipe_pdf_download(request):
     x = (width - title_width) / 2
     y = height - title_height - 50
 
-    p.setFont("Helvetica-Bold", title_font_size)
+    p.setFont('Helvetica-Bold', title_font_size)
     p.drawString(x, y, title)
     p.showPage()
     p.save()

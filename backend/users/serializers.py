@@ -5,8 +5,6 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 from recipes.models import Recipe
-import collections
-
 from .models import Follow, User
 
 
@@ -39,21 +37,6 @@ class FieldUserSerializer(UserSerializer):
         if user.is_anonymous:
             return False
         return Follow.objects.filter(follower=user, author=obj).exists()
-
-
-# class UserCreateSerializer(UserCreateSerializer):
-#     """Сериализатор создания пользователя."""
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'email',
-#             'username',
-#             'first_name',
-#             'last_name',
-#             'password',
-#         )
-#         extra_kwargs = {'password': {'write_only': True}}
 
 
 class GetFollowSerializer(FieldUserSerializer):
@@ -131,14 +114,11 @@ class AddFollowerSerializer(GetFollowSerializer):
         return obj.recipes.count()
 
 
-    class Meta(GetFollowSerializer.Meta):
-        fields = GetFollowSerializer.Meta.fields + (
-            'recipes_count',
-            'recipes',
-        )
-        read_only_fields = (
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-        )
+class Meta(GetFollowSerializer.Meta):
+    fields = GetFollowSerializer.Meta.fields + ('recipes_count', 'recipes')
+    read_only_fields = (
+        'email',
+        'username',
+        'first_name',
+        'last_name',
+    )

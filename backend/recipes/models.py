@@ -146,12 +146,12 @@ class RecipeIngredientsMerge(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredients_merge',
+        related_name='recipe_ingredients',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_ingredients_merge',
+        related_name='ingredient_recipes',
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',

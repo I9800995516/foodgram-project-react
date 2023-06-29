@@ -1,4 +1,6 @@
 import base64
+from django.db import transaction
+
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer as DjoserUserSerializer
@@ -56,29 +58,6 @@ class IngredientNoAmountSerializer(ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-# class IngredientInRecipeSerializer(ModelSerializer):
-#     id = PrimaryKeyRelatedField(
-#         queryset=Ingredient.objects.all(),
-#         source='ingredient.id',
-#     )
-#     name = serializers.ReadOnlyField(
-#         source='ingredient.name',
-#         read_only=True,
-#     )
-#     measurement_unit = serializers.ReadOnlyField(
-#         source='ingredient.measurement_unit',
-#         read_only=True,
-#     )
-
-#     class Meta:
-#         model = RecipeIngredientsMerge
-#         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-#     def to_representation(self, instance):
-#         data = super().to_representation(instance)
-#         data['id'] = instance.ingredient.id
-#         return data
-
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     ingredient = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
@@ -92,11 +71,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredientsMerge
         fields = ('ingredient', 'name', 'measurement_unit', 'amount')
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['ingredient'] = instance.ingredient.id
-        return data
 
 
 class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
@@ -122,9 +96,8 @@ class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
 class RecipeSerializer(ModelSerializer):
     tags = TagSerializers(many=True, read_only=True)
     author = FieldUserSerializer()
-    ingredients = RecipeIngredientsMergeSerializer(
-        # source='recipeingredients',
-        source='ingredient_ingredients_merge',
+    ingredients = IngredientInRecipeSerializer(
+        source='recipe_ingredients',
         many=True,
         read_only=True,
     )
@@ -250,47 +223,39 @@ class RecipeKorzinaSerializer(ModelSerializer):
         fields = ('recipe', 'user')
 
 
-class RecipeCreateSerializer(ModelSerializer):
-    author = FieldUserSerializer(
-        read_only=True,
-    )
-    tags = PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all(),
-    )
-    ingredients = IngredientInRecipeSerializer(
-        source='RecipeIngredients',
-        many=True,
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    author = FieldUserSerializer(read_only=True)
+    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    ingredients = IngredientInRecipeSerializer(many=True)
+    image = Base64ImageField(required=False, allow_null=True)
 
-    )
-    image = Base64ImageField(
-        required=False,
-        allow_null=True,
-    )
-
+    @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('RecipeIngredients')
+        ingredients = validated_data.pop('ingredients')
+
         recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.add(*tags)
+        recipe.tags.set(tags)
+
         self.save_ingredients(recipe, ingredients)
+
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.image = validated_data.get('image', instance.image)
-        instance.cooking_time = validated_data.get(
-            'cooking_time',
-            instance.cooking_time,
-        )
-        ingredients = validated_data.pop('RecipeIngredients')
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        instance.tags.clear()
-        instance.tags.add(*tags)
+
+        instance.tags.set(tags)
         instance.ingredients.clear()
-        recipe = instance
-        self.save_ingredients(recipe, ingredients)
+
+        self.save_ingredients(instance, ingredients)
+
         instance.save()
         return instance
 
@@ -311,39 +276,23 @@ class RecipeCreateSerializer(ModelSerializer):
 
     def validate(self, data):
         ingredients_list = []
-        ingredients_in_recipe = data.get('RecipeIngredients')
+        ingredients_in_recipe = data.get('ingredients')
         for ingredient in ingredients_in_recipe:
             amount = ingredient.get('amount')
-            print(f'Type of amount: {type(amount)}')
             if not isinstance(amount, int):
                 amount = int(amount)
             if amount <= 0:
-                raise ValidationError(
-                    {
-                        'error': 'Ингредиентов не должно быть менее одного!',
-                    },
-                )
+                raise serializers.ValidationError({'error': 'Ингредиентов не должно быть менее одного!'})
             ingredients_list.append(ingredient['ingredient']['id'])
         if len(ingredients_list) > len(set(ingredients_list)):
-            raise ValidationError(
-                {
-                    'error': 'Ингредиенты в рецепте не должны повторяться!',
-                },
-            )
+            raise serializers.ValidationError({'error': 'Ингредиенты в рецепте не должны повторяться!'})
 
         cooking_time = data.get('cooking_time')
         if not isinstance(cooking_time, int):
-            raise ValidationError(
-                {
-                    'error': 'Время приготовления должно быть целым числом!',
-                },
-            )
+            raise serializers.ValidationError({'error': 'Время приготовления должно быть целым числом!'})
         if cooking_time <= 0:
-            raise ValidationError(
-                {
-                    'error': 'Время приготовления должно быть не менее 1 мин!',
-                },
-            )
+            raise serializers.ValidationError({'error': 'Время приготовления должно быть не менее 1 мин!'})
+
         return data
 
     def to_representation(self, instance):

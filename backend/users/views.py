@@ -5,7 +5,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from api.pagination import CustomPagination
-
 from .models import Follow, User
 from .serializers import (AddFollowerSerializer, GetFollowSerializer,
                           FieldUserSerializer)
@@ -33,7 +32,7 @@ class UsersViewSet(UserViewSet):
 
         if request.method == 'POST':
             serializer = AddFollowerSerializer(
-                data=request.data,  # Pass request data instead of `author`
+                data=request.data,
                 context={'request': request},
             )
             serializer.is_valid(raise_exception=True)

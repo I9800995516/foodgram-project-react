@@ -23,9 +23,9 @@ class AuthorFilter(SimpleListFilter):
     parameter_name = 'author'
 
     def lookups(self, request, model_admin):
-        authors = Recipe.objects.order_by(
-            'author').values_list('author', 'author__username').distinct()
-        return authors
+        return Recipe.objects.order_by('author').values_list(
+            'author', 'author__username',
+        ).distinct()
 
     def queryset(self, request, queryset):
         author_id = self.value()

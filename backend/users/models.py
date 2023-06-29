@@ -2,7 +2,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
-
 from foodgram.settings import EMAIL_LENGTH, NAME_LENGTH, TEXT_LENGTH
 
 from .validators import UsernameValidator
@@ -107,4 +106,7 @@ class Follow(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.follower.username[:TEXT_LENGTH]} follows {self.author.username[:TEXT_LENGTH]}'
+        return (
+            f'{self.follower.username[:TEXT_LENGTH]} '
+            f'follows {self.author.username[:TEXT_LENGTH]}'
+        )

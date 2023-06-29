@@ -2,17 +2,16 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer as DjoserUserSerializer
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import serializers
 from rest_framework.fields import ImageField
-from rest_framework.serializers import (CharField, CurrentUserDefault,
-                                        ModelSerializer,
+from rest_framework.serializers import (CurrentUserDefault, ModelSerializer,
                                         PrimaryKeyRelatedField,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
-from users.serializers import FieldUserSerializer
 from users.models import User
+from users.serializers import FieldUserSerializer
 
 
 class UserSerializer(DjoserUserSerializer):
@@ -42,7 +41,12 @@ class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed'
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
         ]
 
 
@@ -52,19 +56,63 @@ class IngredientNoAmountSerializer(ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientInRecipeSerializer(ModelSerializer):
-    id = PrimaryKeyRelatedField(
+# class IngredientInRecipeSerializer(ModelSerializer):
+#     id = PrimaryKeyRelatedField(
+#         queryset=Ingredient.objects.all(),
+#         source='ingredient.id',
+#     )
+#     name = serializers.ReadOnlyField(
+#         source='ingredient.name',
+#         read_only=True,
+#     )
+#     measurement_unit = serializers.ReadOnlyField(
+#         source='ingredient.measurement_unit',
+#         read_only=True,
+#     )
+
+#     class Meta:
+#         model = RecipeIngredientsMerge
+#         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         data['id'] = instance.ingredient.id
+#         return data
+
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
+    ingredient = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='id',
+    )
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit',
+    )
+
+    class Meta:
+        model = RecipeIngredientsMerge
+        fields = ('ingredient', 'name', 'measurement_unit', 'amount')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['ingredient'] = instance.ingredient.id
+        return data
+
+
+class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
         source='ingredient.id',
     )
-    name = CharField(
+    name = serializers.CharField(
         source='ingredient.name',
         read_only=True,
     )
-    measurement_unit = CharField(
+    measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit',
         read_only=True,
     )
+    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredientsMerge
@@ -74,11 +122,13 @@ class IngredientInRecipeSerializer(ModelSerializer):
 class RecipeSerializer(ModelSerializer):
     tags = TagSerializers(many=True, read_only=True)
     author = FieldUserSerializer()
-    ingredients = IngredientInRecipeSerializer(
-        source='recipeingredients',
+    ingredients = RecipeIngredientsMergeSerializer(
+        # source='recipeingredients',
+        source='ingredient_ingredients_merge',
         many=True,
         read_only=True,
     )
+
     is_favorited = SerializerMethodField()
     is_in_shopping_cart = SerializerMethodField()
     image = Base64ImageField(max_length=None)
@@ -148,10 +198,7 @@ class FavoriteSerializer(ModelSerializer):
         if Favorite.objects.filter(recipe=recipe, user=user).exists():
             raise ValidationError('Этот рецепт уже был добавлен в избранное!')
 
-        favorite = Favorite.objects.create(
-            user=user, recipe=recipe, author=user,
-        )
-        return favorite
+        return Favorite.objects.create(user=user, recipe=recipe)
 
     def validate(self, data):
         recipe = data['recipe']
@@ -309,23 +356,3 @@ class RecipeCreateSerializer(ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
-
-
-class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-        source='ingredient.id',
-    )
-    name = serializers.CharField(
-        source='ingredient.name',
-        read_only=True,
-    )
-    measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit',
-        read_only=True,
-    )
-    amount = serializers.IntegerField()
-
-    class Meta:
-        model = RecipeIngredientsMerge
-        fields = ('id', 'name', 'measurement_unit', 'amount')

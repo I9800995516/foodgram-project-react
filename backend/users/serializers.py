@@ -1,10 +1,11 @@
 
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 from recipes.models import Recipe
+import collections
 
 from .models import Follow, User
 
@@ -24,6 +25,8 @@ class FieldUserSerializer(UserSerializer):
             'is_subscribed',
         )
 
+        extra_kwargs = {'password': {'write_only': True}}
+
     # def get_is_subscribed(self, obj):
     #     request = self.context.get('request')
     #     if self.context.get('request').user.is_anonymous:
@@ -38,19 +41,19 @@ class FieldUserSerializer(UserSerializer):
         return Follow.objects.filter(follower=user, author=obj).exists()
 
 
-class UserCreateSerializer(UserCreateSerializer):
-    """Сериализатор создания пользователя."""
+# class UserCreateSerializer(UserCreateSerializer):
+#     """Сериализатор создания пользователя."""
 
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'password',
-        )
-        extra_kwargs = {'password': {'write_only': True}}
+#     class Meta:
+#         model = User
+#         fields = (
+#             'email',
+#             'username',
+#             'first_name',
+#             'last_name',
+#             'password',
+#         )
+#         extra_kwargs = {'password': {'write_only': True}}
 
 
 class GetFollowSerializer(FieldUserSerializer):
@@ -105,7 +108,7 @@ class AddFollowerSerializer(GetFollowSerializer):
         author = self.instance
         user = self.context.get('request').user
 
-        if Follow.objects.filter(author=author, user=user).exists():
+        if Follow.objects.filter(author=author, follower=user).exists():
             raise ValidationError(
                 default_detail='Вы уже подписаны на этого автора!',
                 default_code=status.HTTP_400_BAD_REQUEST,
@@ -124,8 +127,9 @@ class AddFollowerSerializer(GetFollowSerializer):
         )
         return serializer.data
 
-    def get_recipes_count(self, obj):
+    def get_recipes_count(self, obj: User):
         return obj.recipes.count()
+
 
     class Meta(GetFollowSerializer.Meta):
         fields = GetFollowSerializer.Meta.fields + (

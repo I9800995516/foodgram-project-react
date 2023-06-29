@@ -1,8 +1,5 @@
 import os
 import pathlib
-from api.pagination import CustomPagination
-
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,7 +69,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-# Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 
 # DATABASES = {
 #     'default': {
@@ -89,15 +92,14 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-       'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-       'NAME': os.environ.get('POSTGRES_DB', BASE_DIR.joinpath('db.sqlite3')),
-       'USER': os.environ.get('POSTGRES_USER'),
-       'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-       'HOST': os.environ.get('DB_HOST'),
-       'PORT': os.environ.get('DB_PORT'),
-    }
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.environ.get('POSTGRES_DB', BASE_DIR.joinpath('db.sqlite3')),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
+    },
 }
-
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -119,7 +121,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 
 LANGUAGE_CODE = 'ru'
@@ -147,6 +151,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
     ],
 
     'SEARCH_PARAM': 'name',
@@ -158,12 +163,9 @@ REST_FRAMEWORK = {
 DJOSER = {
 
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UserCreateSerializer',
+        # 'user_create': 'users.serializers.FieldUserSerializer',
         'user': 'users.serializers.FieldUserSerializer',
         'current_user': 'users.serializers.FieldUserSerializer',
-
-        'set_password': 'djoser.serializers.SetPasswordSerializer',
-        'username_reset': 'djoser.email.UsernameResetEmail',
     },
 
     'PERMISSIONS': {
@@ -180,7 +182,6 @@ DJOSER = {
 
 TEXT_LENGTH = 15
 PER_PAGE = 6
-EMAIL = 'I9800995516@yandex.ru'
 EMAIL_LENGTH = 254
 NAME_LENGTH = 150
 TAG_MAX_LENGTH = 200

@@ -1,15 +1,14 @@
+from api.recipepdf import recipe_pdf_download
 from django.db.models import Sum
-from rest_framework.permissions import AllowAny
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
-from api.recipepdf import recipe_pdf_download
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
@@ -35,14 +34,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
     permission_classes = (permissions.AllowAny,)
-    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # permission_classes = (IsRecipeAuthorOrReadOnly,)
-    permission_classes = [AllowAny]
+    permission_classes = (IsRecipeAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
     http_method_names = ('get', 'post', 'delete', 'patch')
@@ -59,38 +56,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def add_del(self, request, pk, model, serializer):
+        recipe = get_object_or_404(Recipe, id=pk)
+        user = request.user
+
         if request.method == 'POST':
-            recipe = get_object_or_404(Recipe, id=pk)
-            if model.objects.filter(recipe=recipe, user=request.user).exists():
+            if model.objects.filter(recipe=recipe, user=user).exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            model.objects.create(
-                recipe=recipe, user=request.user, author=request.user,
-            )
+            model.objects.create(recipe=recipe, user=user)
+            return Response(status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            action_model = get_object_or_404(
-                model,
-                user=request.user,
-                recipe=get_object_or_404(Recipe, pk=pk),
-            )
+            action_model = get_object_or_404(model, recipe=recipe, user=user)
             action_model.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-
-        serializer = serializer(recipe)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(methods=['post', 'delete'], detail=True)
     def favorite(self, request, pk):
         return self.add_del(request, pk, Favorite, FavoriteSerializer)
 
     @action(methods=['post', 'delete'], detail=True)
-    def korzina(self, request, pk):
+    def shopping_cart(self, request, pk):
         return self.add_del(
             request, pk, RecipeKorzina, RecipeKorzinaSerializer,
         )
 
     @action(detail=False, methods=['get'],
             permission_classes=[permissions.IsAuthenticated])
-    def download_korzina(self, request):
+    def download_shopping_cart(self, request):
         user = request.user
         ingredients = (
             RecipeIngredientsMerge.objects.filter(

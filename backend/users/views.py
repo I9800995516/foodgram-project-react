@@ -1,25 +1,20 @@
 from django.shortcuts import get_object_or_404
-from djoser.serializers import SetPasswordSerializer
 from djoser.views import UserViewSet
 from rest_framework import permissions, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from api.pagination import CustomPagination
 
 from .models import Follow, User
 from .serializers import (AddFollowerSerializer, GetFollowSerializer,
-                          UserCreateSerializer)
+                          FieldUserSerializer)
 
 
 class UsersViewSet(UserViewSet):
     queryset = User.objects.all()
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return UserCreateSerializer
-        if self.action == 'set_password':
-            return SetPasswordSerializer
-        return UserCreateSerializer
+    serializer_class = FieldUserSerializer
+    pagination_class = CustomPagination
 
     @action(
         detail=True,
@@ -27,23 +22,22 @@ class UsersViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
         authentication_classes=[TokenAuthentication],
     )
-    def follow(self, request, **kwargs):
+    def subscribe(self, request, **kwargs):
         user = request.user
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
         subscription = Follow.objects.filter(
-            user=user,
+            follower=user,
             author=author,
         )
 
         if request.method == 'POST':
             serializer = AddFollowerSerializer(
-                author,
-                data=request.data,
+                data=request.data,  # Pass request data instead of `author`
                 context={'request': request},
             )
             serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user=user, author=author)
+            Follow.objects.create(follower=user, author=author)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED,
@@ -63,7 +57,7 @@ class UsersViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
         authentication_classes=[TokenAuthentication],
     )
-    def followings(self, request):
+    def suscriptions(self, request):
         user = request.user
         queryset = User.objects.filter(following__user=user)
         queryset = user.following.all()

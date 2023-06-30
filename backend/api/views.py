@@ -7,22 +7,22 @@ from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import (IsRecipeAuthorOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
-from .serializers import (FavoriteSerializer, IngredientNoAmountSerializer,
-                          RecipeCreateSerializer, RecipeKorzinaSerializer,
-                          RecipeSerializer, TagSerializers)
+from .serializers import (IngredientNoAmountSerializer, ListRecipeSerializer,
+                          RecipeCreateSerializer, RecipeSerializer,
+                          TagSerializers)
 
 
 class TagViewSet(CreateListDestroyViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializers
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (permissions.AllowAny,)
     pagination_class = None
 
 
@@ -33,7 +33,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     http_method_names = ['get']
     filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (permissions.AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -44,10 +44,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeSearchFilter
     http_method_names = ('get', 'post', 'delete', 'patch')
 
-    # def get_serializer_class(self):
-    #     if self.request.method in SAFE_METHODS:
-    #         return RecipeSerializer
-    #     return RecipeCreateSerializer
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -55,87 +55,71 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
-    def add_del(self, request, pk, model, serializer):
-        recipe = get_object_or_404(Recipe, id=pk)
+    @staticmethod
+    def _add_delete_recipe_to_list(request, recipe_id, list):
+        select_list = {
+            'favorite': {
+                'model': Favorite,
+                'name': 'favorite',
+            },
+            'shopping_cart': {
+                'model': RecipeKorzina,
+                'name': 'shopping cart',
+            }
+        }
+
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
         user = request.user
 
         if request.method == 'POST':
-            if model.objects.filter(recipe=recipe, user=user).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            model.objects.create(recipe=recipe, user=user)
-            return Response(status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
-            action_model = get_object_or_404(model, recipe=recipe, user=user)
-            action_model.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            if select_list[list]['model'].objects.filter(
+                    user=user, recipe=recipe,
+            ).exists():
+                return Response(
+                    {'errors': (
+                        f'Recipe already added to {select_list[list]["name"]}.'
+                    )},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            select_list[list]['model'].objects.create(recipe=recipe, user=user)
+            serializer = ListRecipeSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(methods=['post', 'delete'], detail=True)
-    def favorite(self, request, pk):
-        return self.add_del(request, pk, Favorite, FavoriteSerializer)
+        if request.method == 'DELETE':
+            if not select_list[list]['model'].objects.filter(
+                    user=user, recipe=recipe,
+            ).exists():
+                return Response(
+                    {'errors': (
+                        f'Recipe is not in the {select_list[list]["name"]}.'
+                    )},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            select_list[list]['model'].objects.filter(
+                user=user, recipe=recipe,
+            ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(methods=['post', 'delete'], detail=True)
-    def shopping_cart(self, request, pk):
-        return self.add_del(
-            request, pk, RecipeKorzina, RecipeKorzinaSerializer,
+    @action(
+        detail=False, methods=['post', 'delete'],
+        url_path='(?P<recipe_id>[^/.]+)/favorite',
+        permission_classes=(IsAuthenticated,),
+    )
+    def favorite(self, request, recipe_id=None):
+        return self._add_delete_recipe_to_list(request, recipe_id, 'favorite')
+
+    @action(
+        detail=False, methods=['post', 'delete'],
+        url_path='(?P<recipe_id>[^/.]+)/shopping_cart',
+        permission_classes=(IsAuthenticated,),
+    )
+    def shopping_cart(self, request, recipe_id=None):
+        return self._add_delete_recipe_to_list(
+            request, recipe_id, 'shopping_cart',
         )
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False,
+            methods=['get'],
+            permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        user = request.user
-        ingredients = (
-            RecipeIngredientsMerge.objects.filter(
-                recipe__recipekorzina__user=user,
-            )
-            .prefetch_related('recipe___recipekorzina', 'user', 'ingredient')
-            .values_list('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(total_amount=Sum('amount'))
-        )
-
-        output = ['Список ваших покупок:\n']
-        for i, (name, unit, amount) in enumerate(ingredients, start=1):
-            output.append(f'{i}. {name} - {amount} {unit}\n')
-
-        file_name = 'korzina.txt'
-        response = HttpResponse(content_type='text/plain')
-        response['Список покупок'] = f'attachment; filename={file_name}'
-        response.write(''.join(output))
-
-        return response
-
-    @action(detail=False, permission_classes=[permissions.IsAuthenticated])
-    def download_recipe_korzina(self, request):
-        user = request.user
-        ingredients = RecipeIngredientsMerge.objects.filter(
-            recipe__recipekorzina__user=user,
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit',
-        ).annotate(amount=Sum('amount'))
-
-        data = []
-        for ingredient in ingredients:
-            data.append(
-                f'• {ingredient["ingredient__name"]} '
-                f'({ingredient["ingredient__measurement_unit"]})'
-                f' - {ingredient["amount"]}',
-            )
-
-        content = 'Список покупок:\n\n' + '\n'.join(data)
-        filename = 'korzina.txt'
-
-        response = HttpResponse(content, content_type='text/plain')
-        response['Список покупок'] = f'attachment; filename={filename}'
-
-        return response
-
-    @action(detail=False, methods=['get'],
-            permission_classes=[IsSuperUserIsAdminIsModeratorIsAuthor])
-    def recipe_pdf_download(self, request):
         return recipe_pdf_download(request)
-
-    @action(detail=True, methods=['get'])
-    def custom_retrieve(self, request, pk=None):
-        return self.retrieve(request)

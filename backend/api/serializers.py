@@ -1,13 +1,14 @@
 import base64
-from django.core.validators import MinValueValidator, MaxValueValidator
+
 from django.core.files.base import ContentFile
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import serializers
 from rest_framework.fields import ImageField
-from rest_framework.serializers import (CurrentUserDefault, ModelSerializer,
+from rest_framework.serializers import (ModelSerializer,
                                         PrimaryKeyRelatedField,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueTogetherValidator
@@ -153,73 +154,12 @@ class RecipeSerializer(ModelSerializer):
         ]
 
 
-class FavoriteSerializer(ModelSerializer):
-    user = PrimaryKeyRelatedField(
-        read_only=True, default=CurrentUserDefault(),
-    )
-    recipe = PrimaryKeyRelatedField(
-        queryset=Recipe.objects.all(),
-        write_only=True,
-    )
-
-    def create(self, validated_data):
-        request = self.context.get('request')
-        user = request.user
-        recipe = validated_data.get('recipe')
-
-        if Favorite.objects.filter(recipe=recipe, user=user).exists():
-            raise ValidationError('Этот рецепт уже был добавлен в избранное!')
-
-        return Favorite.objects.create(user=user, recipe=recipe)
-
-    def validate(self, data):
-        recipe = data['recipe']
-        user = self.context['request'].user
-
-        if Favorite.objects.filter(recipe=recipe, user=user).exists():
-            raise ValidationError('Этот рецепт уже был добавлен в избранное!')
-
-        return data
+class ListRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления рецептов в избранное и в список покупок."""
 
     class Meta:
-        model = Favorite
-        fields = ('recipe', 'user')
-
-
-class RecipeKorzinaSerializer(ModelSerializer):
-    user = PrimaryKeyRelatedField(
-        read_only=True, default=CurrentUserDefault(),
-    )
-    recipe = PrimaryKeyRelatedField(
-        queryset=Recipe.objects.all(),
-        write_only=True,
-    )
-
-    def create(self, validated_data):
-        return RecipeKorzina.objects.create(
-            user=self.context.get('request').user,
-            **validated_data,
-        )
-
-    def validate(self, data):
-        object = RecipeKorzina.objects.filter(
-            recipe=data['recipe'],
-            user=self.context['request'].user,
-        )
-        if self.context['request'].method == 'DELETE':
-            raise ValidationError(
-                'Этот рецепт не был добавлен в список покупок!',
-            )
-        if self.context['request'].method == 'POST' and object.exists():
-            raise ValidationError(
-                'Этот рецепт уже был добавлен в список покупок!',
-            )
-
-        return data
-
-    class Meta:
-        model = RecipeKorzina
-        fields = ('recipe', 'user')
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class RecipeIngredientSerializer(serializers.Serializer):
@@ -230,11 +170,11 @@ class RecipeIngredientSerializer(serializers.Serializer):
         validators=(
             MinValueValidator(
                 1,
-                message='Количество не может быть менее 1',
+                message='Кол-во ингредиентов не может быть меньше 1.',
             ),
             MaxValueValidator(
                 1000,
-                message='Мы столько не сьедим....',
+                message='Кол-во ингредиентов должно быть меньше 1000.',
             ),
         ),
     )
@@ -318,8 +258,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             context={'request': self.context.get('request')},
         )
         return serializer.data
-    
-    
+
     class Meta:
         model = Recipe
         fields = '__all__'

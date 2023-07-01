@@ -59,21 +59,6 @@ class IngredientNoAmountSerializer(ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    ingredient = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-        source='id',
-    )
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit',
-    )
-
-    class Meta:
-        model = RecipeIngredientsMerge
-        fields = ('ingredient', 'name', 'measurement_unit', 'amount')
-
-
 class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
@@ -91,18 +76,13 @@ class RecipeIngredientsMergeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredientsMerge
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'ingredient_id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeSerializer(ModelSerializer):
     tags = TagSerializers(many=True, read_only=True)
     author = FieldUserSerializer()
-    ingredients = IngredientInRecipeSerializer(
-        source='recipe_ingredients',
-        many=True,
-        read_only=True,
-    )
-
+    ingredients = serializers.SerializerMethodField()
     is_favorited = SerializerMethodField()
     is_in_shopping_cart = SerializerMethodField()
     image = Base64ImageField(max_length=None)
@@ -132,6 +112,26 @@ class RecipeSerializer(ModelSerializer):
         ):
             return True
         return False
+
+    def get_ingredients(self, obj):
+        return RecipeIngredientsMergeSerializer(
+            obj.recipe_ingredients.all(),
+            many=True,
+            context=self.context,
+        ).data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['ingredients'] = [
+            {
+                'id': ingredient['ingredient_id'],
+                'name': ingredient['name'],
+                'measurement_unit': ingredient['measurement_unit'],
+                'amount': ingredient['amount'],
+            }
+            for ingredient in data['ingredients']
+        ]
+        return data
 
     class Meta:
         model = Recipe

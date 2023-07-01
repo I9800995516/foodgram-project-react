@@ -1,4 +1,5 @@
 import base64
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -174,7 +175,8 @@ class RecipeIngredientSerializer(serializers.Serializer):
             ),
             MaxValueValidator(
                 1000,
-                message='Нам столько не сьесть, количество должно быть меньше 1000.',
+                message='Нам столько не сьесть,'
+                'количество должно быть меньше 1000.',
             ),
         ),
     )
@@ -243,11 +245,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                         recipe=recipe,
                         ingredient=ingredient_obj,
                         amount=current_amount,
-                    )
+                    ),
                 )
             except ObjectDoesNotExist:
                 raise serializers.ValidationError(
-                    'Ингредиент с ID {} не существует'.format(current_ingredient_id),
+                    'Ингредиент с ID {} не существует'
+                    .format(current_ingredient_id),
                 )
         RecipeIngredientsMerge.objects.bulk_create(ingredients_list)
 

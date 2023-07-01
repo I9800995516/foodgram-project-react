@@ -1,9 +1,8 @@
 from io import BytesIO
 
 from api.serializers import RecipeIngredientsMerge
-from django.db.models.aggregates import Sum
 from django.http import FileResponse
-from recipes.models import Recipe, RecipeKorzina
+from recipes.models import RecipeKorzina
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -43,7 +42,7 @@ def recipe_pdf_download(request):
         ) in enumerate(ingredients, start=1):
             page.drawString(
                 body_x + 30,
-                height, f"{i}. {name} – {amount} {measurement_unit}",
+                height, f'{i}. {name} – {amount} {measurement_unit}',
             )
             height -= 25
         height -= 20

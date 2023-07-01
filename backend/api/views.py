@@ -1,39 +1,35 @@
 from api.recipepdf import recipe_pdf_download
 from django.db import transaction
-from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
-from rest_framework import permissions, status, viewsets
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeKorzina, Tag)
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (IsRecipeAuthorOrReadOnly,
-                          IsSuperUserIsAdminIsModeratorIsAuthor)
+from .permissions import IsRecipeAuthorOrReadOnly
 from .serializers import (IngredientNoAmountSerializer, ListRecipeSerializer,
                           RecipeCreateSerializer, RecipeSerializer,
                           TagSerializers)
 
+
 class TagViewSet(CreateListDestroyViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializers
-    # permission_classes = (permissions.AllowAny,)
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientNoAmountSerializer
+    permission_classes = (IsRecipeAuthorOrReadOnly,)
     pagination_class = None
     http_method_names = ['get']
     filter_backends = (IngredientFiltration,)
     search_fields = ('^name',)
-    # permission_classes = (permissions.AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -66,7 +62,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'shopping_cart': {
                 'model': RecipeKorzina,
                 'name': 'shopping cart',
-            }
+            },
         }
 
         recipe = get_object_or_404(Recipe, pk=recipe_id)

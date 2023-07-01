@@ -46,7 +46,7 @@ class User(AbstractUser):
 
     role = models.CharField(
         verbose_name='Роль пользователя',
-        max_length=20,
+        max_length=TEXT_LENGTH,
         choices=USER_ROLES,
         default='user',
     )
@@ -75,7 +75,7 @@ class User(AbstractUser):
         )
 
     def __str__(self):
-        return self.username[:15]
+        return self.username[:TEXT_LENGTH]
 
 
 class Follow(models.Model):
@@ -89,7 +89,7 @@ class Follow(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='author',
+        related_name='followers',
         verbose_name='Автор',
     )
 

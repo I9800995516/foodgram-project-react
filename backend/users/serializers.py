@@ -26,6 +26,9 @@ class FieldUserSerializer(UserSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return False
         user = self.context.get('request').user
         if user.is_anonymous:
             return False

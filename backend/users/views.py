@@ -28,19 +28,24 @@ class UsersViewSet(UserViewSet):
         author_id = int(kwargs.get('id'))
         author = get_object_or_404(User, id=author_id)
         subscription = Follow.objects.filter(follower=user, author=author)
+
         if request.method == 'POST':
             serializer = AddFollowerSerializer(
-                data=request.data, context={'request': request},
+                instance=author,
+                data=request.data,
+                context={'request': request},
             )
             serializer.is_valid(raise_exception=True)
             with transaction.atomic():
                 Follow.objects.create(follower=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE' and not subscription:
+
+        if request.method == 'DELETE' and not subscription.exists():
             return Response(
                 {'errors': 'Вы уже удалили этого автора из подписок!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         with transaction.atomic():
             subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -50,9 +55,9 @@ class UsersViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
         authentication_classes=[TokenAuthentication],
     )
-    def suscriptions(self, request):
+    def subscriptions(self, request):
         user = request.user
-        queryset = User.objects.filter(following__user=user)
+        queryset = User.objects.filter(followers__follower=user)
         pages = self.paginate_queryset(queryset)
 
         serializer = GetFollowSerializer(

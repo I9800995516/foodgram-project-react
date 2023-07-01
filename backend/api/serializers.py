@@ -1,5 +1,5 @@
 import base64
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
@@ -228,15 +228,27 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def save_ingredients(recipe, ingredients):
         ingredients_list = []
         for ingredient in ingredients:
-            current_ingredient = ingredient.get('id')
-            current_amount = ingredient.get('amount')
-            ingredients_list.append(
-                RecipeIngredientsMerge(
-                    recipe=recipe,
-                    ingredient_id=current_ingredient,
-                    amount=current_amount,
-                ),
-            )
+            current_ingredient_id = ingredient.get('id')
+            current_amount = int(ingredient.get('amount'))
+            if current_ingredient_id is None:
+                raise serializers.ValidationError(
+                    'Некорректный ID ингредиента',
+                )
+            try:
+                ingredient_obj = Ingredient.objects.get(
+                    id=current_ingredient_id,
+                )
+                ingredients_list.append(
+                    RecipeIngredientsMerge(
+                        recipe=recipe,
+                        ingredient=ingredient_obj,
+                        amount=current_amount,
+                    )
+                )
+            except ObjectDoesNotExist:
+                raise serializers.ValidationError(
+                    'Ингредиент с ID {} не существует'.format(current_ingredient_id),
+                )
         RecipeIngredientsMerge.objects.bulk_create(ingredients_list)
 
     def validate(self, data):

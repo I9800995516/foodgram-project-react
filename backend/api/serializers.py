@@ -156,7 +156,6 @@ class RecipeSerializer(ModelSerializer):
 
 
 class ListRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления рецептов в избранное и в список покупок."""
 
     class Meta:
         model = Recipe
@@ -164,7 +163,6 @@ class ListRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.Serializer):
-    """Сериализатор для добавления ингредиентов в рецепт."""
 
     id = serializers.IntegerField()
     amount = serializers.IntegerField(

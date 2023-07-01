@@ -1,7 +1,13 @@
-=======
 # praktikum_new_diplom
 
-Этап 1
+## Этап 1
+
+Проект "Продуктовый помощник"
+
+Python 3.8
+DRF
+Django 3.2
+
 
 Тестирование произведено локально в базе mySQL
 фронт запускался на localhost:3000
@@ -17,7 +23,10 @@
 
 старт фронтэнда командой npm run start
 
-При тестировании на Docker
+## При тестировании на Docker
+
+Перед сборкой контейнеров в папке frontend для локального тестирования необходимо изменить package.json строку 41 на:
+"proxy": "http://web:8000/"
 
 в папке 'infra' создать .env
 
@@ -35,15 +44,14 @@ cd frontend/
 docker build -t fооdgram_frontend .
 
 cd infra/
-docker-compose up -d --build
+docker-compose up -d --build 
+
 
 После успешного запуска контейнеров выполнить миграции, собрать статику, напонить бд и создать суперюзера:
-```
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py collectstatic --noinput
 docker-compose exec backend python manage.py importcsv
 docker-compose exec backend python manage.py createsuperuser
-```
 
 
 ## Автор

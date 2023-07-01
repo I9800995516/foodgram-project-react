@@ -8,7 +8,6 @@ Python 3.8
 DRF
 Django 3.2
 
-
 Тестирование произведено локально в базе mySQL
 фронт запускался на localhost:3000
 бэкэнд на localhost:8000
@@ -17,7 +16,7 @@ Django 3.2
 "proxy": "http://localhost:8000/"
 
 установить node.js
-далее зависимости npm -i  (не обращая внимание на ошибки, зависимости установятся корректно только, если указано в package.json
+далее зависимости npm -i (не обращая внимание на ошибки, зависимости установятся корректно только, если указано в package.json
     "react": "^16.6.0",
     "react-dom": "^16.6.0",)
 
@@ -37,14 +36,15 @@ docker-compose.yml
 
 Развернуть проект локально:
 
+```shell
 cd backend/
-docker build -t fооdgram _backend .
+docker build -t fооdgram_backend .
 
 cd frontend/
 docker build -t fооdgram_frontend .
 
 cd infra/
-docker-compose up -d --build 
+docker-compose up -d --build
 
 
 После успешного запуска контейнеров выполнить миграции, собрать статику, напонить бд и создать суперюзера:

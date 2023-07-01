@@ -174,7 +174,7 @@ class RecipeIngredientSerializer(serializers.Serializer):
             ),
             MaxValueValidator(
                 1000,
-                message='Кол-во ингредиентов должно быть меньше 1000.',
+                message='Нам столько не сьесть, количество должно быть меньше 1000.',
             ),
         ),
     )

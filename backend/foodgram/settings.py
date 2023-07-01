@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

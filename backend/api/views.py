@@ -1,4 +1,5 @@
 from api.recipepdf import recipe_pdf_download
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -17,7 +18,6 @@ from .permissions import (IsRecipeAuthorOrReadOnly,
 from .serializers import (IngredientNoAmountSerializer, ListRecipeSerializer,
                           RecipeCreateSerializer, RecipeSerializer,
                           TagSerializers)
-
 
 class TagViewSet(CreateListDestroyViewSet):
     queryset = Tag.objects.all()
@@ -56,6 +56,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @staticmethod
+    @transaction.atomic
     def _add_delete_recipe_to_list(request, recipe_id, list):
         select_list = {
             'favorite': {

@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from djoser.views import UserViewSet
 from rest_framework import permissions, status
 from rest_framework.authentication import TokenAuthentication
@@ -21,55 +22,27 @@ class UsersViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
         authentication_classes=[TokenAuthentication],
     )
-    # def subscribe(self, request, **kwargs):
-    #     user = request.user        
-    #     author_id = self.kwargs.get('id')
-    #     author = get_object_or_404(User, id=author_id)
-    #     subscription = Follow.objects.filter(
-    #         follower=user,
-    #         author=author,
-    #     )
-
-    #     if request.method == 'POST':
-    #         serializer = AddFollowerSerializer(
-    #             data=request.data,
-    #             context={'request': request},
-    #         )
-    #         serializer.is_valid(raise_exception=True)
-    #         Follow.objects.create(follower=user, author=author)
-    #         return Response(
-    #             serializer.data,
-    #             status=status.HTTP_201_CREATED,
-    #         )
-
-    #     if request.method == 'DELETE' and not subscription:
-    #         return Response(
-    #             {'errors': 'Вы уже удалили этого автора из подписок!'},
-    #             status=status.HTTP_400_BAD_REQUEST,
-    #         )
-
-    #     subscription.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
+    @transaction.atomic
     def subscribe(self, request, **kwargs):
         user = request.user
-        author_id = self.kwargs.get('id')
+        author_id = int(kwargs.get('id'))
         author = get_object_or_404(User, id=author_id)
         subscription = Follow.objects.filter(follower=user, author=author)
-
         if request.method == 'POST':
-            serializer = AddFollowerSerializer(data=request.data, context={'request': request})
+            serializer = AddFollowerSerializer(
+                data=request.data, context={'request': request},
+            )
             serializer.is_valid(raise_exception=True)
-            Follow.objects.create(follower=user, author=author)
+            with transaction.atomic():
+                Follow.objects.create(follower=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         if request.method == 'DELETE' and not subscription:
             return Response(
                 {'errors': 'Вы уже удалили этого автора из подписок!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        subscription.delete()
+        with transaction.atomic():
+            subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -80,7 +53,6 @@ class UsersViewSet(UserViewSet):
     def suscriptions(self, request):
         user = request.user
         queryset = User.objects.filter(following__user=user)
-        queryset = user.following.all()
         pages = self.paginate_queryset(queryset)
 
         serializer = GetFollowSerializer(

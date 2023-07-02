@@ -1,5 +1,6 @@
 import os
 import pathlib
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -175,6 +176,8 @@ RECIPE_NAME_MAX_LENGTH = 200
 INGREDIENT_MAX_LENGTH = 200
 TAG_MAX_LENGTH = 7
 EMPTY = '---пусто---'
+MIN_INGREDIENT_VALUE = 1
+MAX_INGREDIENT_VALUE = 1000
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

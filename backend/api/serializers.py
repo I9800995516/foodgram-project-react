@@ -5,14 +5,25 @@ from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredientsMerge, RecipeKorzina, Tag)
 from rest_framework import serializers
 from rest_framework.fields import ImageField
-from rest_framework.serializers import (ModelSerializer,
-                                        PrimaryKeyRelatedField,
-                                        SerializerMethodField, ValidationError)
+from rest_framework.serializers import (
+    ModelSerializer,
+    PrimaryKeyRelatedField,
+    SerializerMethodField,
+    ValidationError,
+)
 from rest_framework.validators import UniqueTogetherValidator
+
+from foodgram.settings import MAX_INGREDIENT_VALUE, MIN_INGREDIENT_VALUE
+from recipes.models import (
+    Cart,
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredientsMerge,
+    Tag,
+)
 from users.models import User
 from users.serializers import FieldUserSerializer
 
@@ -89,15 +100,7 @@ class RecipeSerializer(ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        if (
-            request.user.is_authenticated
-            and Favorite.objects.filter(
-                recipe=obj,
-                user=request.user,
-            ).exists()
-        ):
+        if Favorite.objects.filter(recipe=obj, user=request.user).exists():
             return True
         return False
 
@@ -105,7 +108,7 @@ class RecipeSerializer(ModelSerializer):
         request = self.context.get('request')
         if (
             request.user.is_authenticated
-            and RecipeKorzina.objects.filter(
+            and Cart.objects.filter(
                 user=request.user,
                 recipe=obj,
             ).exists()
@@ -168,13 +171,14 @@ class RecipeIngredientSerializer(serializers.Serializer):
     amount = serializers.IntegerField(
         validators=(
             MinValueValidator(
-                1,
-                message='Кол-во ингредиентов не может быть меньше 1.',
+                MIN_INGREDIENT_VALUE,
+                message='Кол-во ингредиентов не может быть'
+                'меньше {MIN_INGREDIENT_VALUE}.',
             ),
             MaxValueValidator(
-                1000,
+                MAX_INGREDIENT_VALUE,
                 message='Нам столько не сьесть,'
-                'количество должно быть меньше 1000.',
+                'количество должно быть меньше {MAX_INGREDIENT_VALUE}.',
             ),
         ),
     )
@@ -196,7 +200,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        print(f'Ингредиенты: {ingredients}')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
 

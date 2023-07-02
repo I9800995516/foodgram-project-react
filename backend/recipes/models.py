@@ -1,8 +1,11 @@
 from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from foodgram.settings import (INGREDIENT_MAX_LENGTH, RECIPE_NAME_MAX_LENGTH,
-                               TAG_MAX_LENGTH)
+
+from foodgram.settings import (INGREDIENT_MAX_LENGTH,
+                               RECIPE_NAME_MAX_LENGTH,
+                               TAG_MAX_LENGTH, MIN_INGREDIENT_VALUE)
+
 from users.models import User
 
 
@@ -156,7 +159,11 @@ class RecipeIngredientsMerge(models.Model):
     amount = models.PositiveSmallIntegerField(
         'Количество',
         validators=[
-            MinValueValidator(1, message='Количество не может быть меньше 1'),
+            MinValueValidator(
+                MIN_INGREDIENT_VALUE,
+                message='Количество не может быть'
+                'меньше {MIN_INGREDIENT_VALUE}',
+            ),
         ],
     )
 
@@ -174,7 +181,7 @@ class RecipeIngredientsMerge(models.Model):
         return f'Ингредиент: {self.ingredient}, Рецепт: {self.recipe}'
 
 
-class RecipeKorzina(models.Model):
+class Cart(models.Model):
     user = models.ForeignKey(
         User,
         related_query_name='shopping',

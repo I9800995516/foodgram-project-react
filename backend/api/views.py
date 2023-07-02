@@ -1,12 +1,13 @@
-from api.recipepdf import recipe_pdf_download
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Favorite, Ingredient, Recipe, RecipeKorzina, Tag
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
+
+from api.recipepdf import recipe_pdf_download
+from recipes.models import Favorite, Ingredient, Recipe, Cart, Tag
 
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
@@ -60,7 +61,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'name': 'favorite',
             },
             'shopping_cart': {
-                'model': RecipeKorzina,
+                'model': Cart,
                 'name': 'shopping cart',
             },
         }
@@ -82,13 +83,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = ListRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+# Метод DELETE управляет удалением избранного рецепта из списка избранного
+# или корзины авторизованного пользователя. Когда пользователь отправляет
+# запрос DELETE к /favorite/ или /shopping_cart/ вызывается метод
+# _add_delete_recipe_to_list(), который проверяет, находится ли рецепт в
+# корзине пользователя или в его избранном, иначе он делает попытку
+# удалить чужой рецепт.
+
         if request.method == 'DELETE':
             if not select_list[list]['model'].objects.filter(
                     user=user, recipe=recipe,
             ).exists():
                 return Response(
                     {'errors': (
-                        f'Recipe is not in the {select_list[list]["name"]}.'
+                        f'Рецепт не в списке {select_list[list]["name"]}.'
                     )},
                     status=status.HTTP_400_BAD_REQUEST,
                 )

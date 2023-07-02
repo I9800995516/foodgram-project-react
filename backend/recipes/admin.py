@@ -2,9 +2,10 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.utils.translation import gettext_lazy as _
+
 from foodgram.settings import EMPTY
 
-from .models import Favorite, Ingredient, Recipe, RecipeKorzina, Tag
+from .models import Favorite, Ingredient, Recipe, Cart, Tag
 
 
 class RecipeIngredList(admin.TabularInline):
@@ -63,7 +64,7 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_select_related = ['user', 'recipe']
 
 
-class RecipeKorzinaAdmin(admin.ModelAdmin):
+class CartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
 
 
@@ -71,4 +72,4 @@ admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(RecipeKorzina, RecipeKorzinaAdmin)
+admin.site.register(Cart, CartAdmin)

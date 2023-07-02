@@ -2,6 +2,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
+
 from foodgram.settings import EMAIL_LENGTH, NAME_LENGTH, TEXT_LENGTH
 
 from .validators import UsernameValidator

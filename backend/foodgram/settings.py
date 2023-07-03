@@ -17,6 +17,7 @@ font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 SECRET_KEY = os.getenv(
     'SECRET_KEY',
 )
+# SECRET_KEY = 'bu08h@6u5&hx(+#1ozwvm*(%c6)pi83gf8xs103mw8#*k-ty-d'
 
 DEBUG = False
 

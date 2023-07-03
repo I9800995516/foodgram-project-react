@@ -11,9 +11,13 @@ services:
       - ./.env
 
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: i9800995516/foodgram_backend:latest
+    command: >
+      sh -c "python manage.py collectstatic --no-input &&
+               python manage.py migrate &&
+               python manage.py import_date
+               gunicorn foodgram.wsgi:application --bind 0:8000"
+    
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -24,9 +28,7 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: i9800995516/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -46,4 +48,4 @@ services:
 volumes: 
   static_value:
   media_value:
-  postgres_value:
+  db_value:

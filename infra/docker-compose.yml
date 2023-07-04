@@ -4,6 +4,7 @@ services:
     image: postgres:13.0-alpine
     volumes:
       - postgres_value:/var/lib/postgresql/data/
+      - ./foodgram/backup/backup.sql:/docker-entrypoint-initdb.d/backup.sql  # Mount the backup.sql file into the container
     restart: always
     ports:
       - "5432:5432"
@@ -14,9 +15,9 @@ services:
     image: i9800995516/foodgram_backend:latest
     command: >
       sh -c "python manage.py collectstatic --no-input &&
-               python manage.py migrate &&
-               python manage.py importcsv &&
-               gunicorn foodgram.wsgi:application --bind 0:8000"
+             python manage.py migrate &&
+             python manage.py importcsv &&
+             gunicorn foodgram.wsgi:application --bind 0:8000"
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/

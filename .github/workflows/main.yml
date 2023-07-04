@@ -89,10 +89,8 @@ jobs:
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest           
             sudo docker-compose up -d --build
 
-            sudo docker cp ../backup/backup.sql foodgram_db:/backup.sql
-            sudo docker exec -i foodgram_db psql -U postgres -d postgres -f /backup.sql
-
-         
+            sudo docker cp ../backup/backup.sql db:/backup.sql
+            sudo docker exec -i db psql -U postgres -d postgres -f /backup.sql
 
 
   send_message:  

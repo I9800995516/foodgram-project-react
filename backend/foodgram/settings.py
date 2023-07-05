@@ -8,19 +8,11 @@ load_dotenv()
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
-
-# SECRET_KEY = os.getenv(
-#     'SECRET_KEY', default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs',
-# )
-
 SECRET_KEY = os.getenv(
     'SECRET_KEY',
 )
-# SECRET_KEY = 'bu08h@6u5&hx(+#1ozwvm*(%c6)pi83gf8xs103mw8#*k-ty-d'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['158.160.17.34', '127.0.0.1', 'localhost']
 
@@ -76,14 +68,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-
-
 DATABASES = {
     'default': {
         'ENGINE': os.getenv(
@@ -92,21 +76,10 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', default='postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
         'HOST': os.getenv('DB_HOST', default='db'),
-        # 'HOST': os.getenv('DB_HOST', default='localhost'),
         'PORT': os.getenv('DB_PORT', default='5432'),
     },
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-#         'NAME': os.environ.get('POSTGRES_DB', BASE_DIR.joinpath('db.sqlite3')),
-#         'USER': os.environ.get('POSTGRES_USER'),
-#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-#         'HOST': os.environ.get('DB_HOST'),
-#         'PORT': os.environ.get('DB_PORT'),
-#     },
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

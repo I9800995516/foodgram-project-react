@@ -1,4 +1,5 @@
 version: '3.3'
+
 services:
   db:
     image: postgres:13.0-alpine
@@ -12,11 +13,14 @@ services:
 
   backend:
     image: i9800995516/foodgram_backend:latest
-    command: >
-      sh -c "python manage.py collectstatic --no-input &&
-             python manage.py migrate &&
-             python manage.py importcsv &&
-             gunicorn foodgram.wsgi:application --bind 0:8000"
+    command:
+      - sh
+      - -c
+      - |
+        python manage.py collectstatic --no-input &&
+        python manage.py migrate &&
+        python manage.py importcsv &&
+        gunicorn foodgram.wsgi:application --bind 0:8000
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/

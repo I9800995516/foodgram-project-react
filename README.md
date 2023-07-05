@@ -32,9 +32,6 @@
 Перед сборкой контейнеров в папке frontend после локального тестирования необходимо изменить package.json строку 41 на:
 "proxy": "http://web:8000/"
 
-в папке 'infra' создать .env
-
-в settings.py переключить значение DATABASES на postgres
 
 В папке infra для развертывания в облаке в контейнерах Docker создан:
 docker-compose.yml
@@ -117,8 +114,6 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```
 docker-compose exec backend python manage.py load_ingredients
 ```
-
-
 
 ## Автор
 

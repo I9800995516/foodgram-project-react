@@ -8,7 +8,8 @@ load_dotenv()
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 
 # SECRET_KEY = os.getenv(
 #     'SECRET_KEY', default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs',
@@ -19,7 +20,7 @@ SECRET_KEY = os.getenv(
 )
 # SECRET_KEY = 'bu08h@6u5&hx(+#1ozwvm*(%c6)pi83gf8xs103mw8#*k-ty-d'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['158.160.17.34', '127.0.0.1', 'localhost']
 

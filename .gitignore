@@ -164,3 +164,6 @@ node_modules/
 
 db.sqlite3
 db.sqlite3-journal
+
+dump.json
+/dump.json

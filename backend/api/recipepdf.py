@@ -66,12 +66,10 @@ def recipe_pdf_download(request):
     page.setFont('robotor', PAGE_FONT_SIZE)
     height = BODY_Y + BODY_HEIGHT - TITLE_BOTTOM_SPACE
 
-    
     for shopping_item in shopping_cart:
         recipe = shopping_item.recipe
         recipe_name = recipe.name
 
-        
         ingredients = RecipeIngredientsMerge.objects.filter(
             recipe=recipe).values_list(
             'ingredient__name', 'ingredient__measurement_unit', 'amount',

@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -8,13 +9,16 @@ from rest_framework.response import Response
 
 from api.recipepdf import recipe_pdf_download
 from recipes.models import Favorite, Ingredient, Recipe, Cart, Tag
-
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsRecipeAuthorOrReadOnly
-from .serializers import (IngredientNoAmountSerializer, ListRecipeSerializer,
-                          RecipeCreateSerializer, RecipeSerializer,
-                          TagSerializers)
+from .serializers import (
+    IngredientNoAmountSerializer,
+    ListRecipeSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    TagSerializers,
+)
 
 
 class TagViewSet(CreateListDestroyViewSet):
@@ -88,7 +92,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 # запрос DELETE к /favorite/ или /shopping_cart/ вызывается метод
 # _add_delete_recipe_to_list(), который проверяет, находится ли рецепт в
 # корзине пользователя или в его избранном, иначе он делает попытку
-# удалить чужой рецепт.
+# удалить чужой рецепт. Если удалить, возникают ошибки.
 
         if request.method == 'DELETE':
             if not select_list[list]['model'].objects.filter(

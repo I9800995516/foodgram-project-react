@@ -1,12 +1,12 @@
 from io import BytesIO
 
 from django.http import FileResponse
-from django.reportlab.lib import colors, pagesizes
-from django.reportlab.lib.styles import ParagraphStyle
-from django.reportlab.pdfbase import pdfmetrics
-from django.reportlab.pdfbase.ttfonts import TTFont
-from django.reportlab.pdfgen import canvas
-from django.reportlab.platypus import Paragraph
+from reportlab.lib import colors, pagesizes
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph
 
 from api.serializers import RecipeIngredientsMerge
 from recipes.models import Cart

@@ -120,3 +120,4 @@ docker-compose exec backend python manage.py load_ingredients
 ## Автор
 
 Штанова Маргарита
+I9800995516@yandex.ru

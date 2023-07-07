@@ -10,6 +10,7 @@ from .validators import UsernameValidator
 
 class User(AbstractUser):
     """Модель создания пользователя."""
+    recipes_limit = models.IntegerField(default=3)
 
     USER = 'user'
     ADMIN = 'admin'

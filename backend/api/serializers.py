@@ -173,13 +173,17 @@ class RecipeIngredientSerializer(serializers.Serializer):
         validators=(
             MinValueValidator(
                 MIN_INGREDIENT_VALUE,
-                message='Кол-во ингредиентов не может быть'
-                'меньше {MIN_INGREDIENT_VALUE}.',
+                message=(
+                    f'Кол-во ингредиентов не может быть меньше '
+                    f'{MIN_INGREDIENT_VALUE}.'
+                ),
             ),
             MaxValueValidator(
                 MAX_INGREDIENT_VALUE,
-                message='Нам столько не сьесть,'
-                'количество должно быть меньше {MAX_INGREDIENT_VALUE}.',
+                message=(
+                    f'Нам столько не сьесть,'
+                    f'количество должно быть меньше {MAX_INGREDIENT_VALUE}.'
+                ),
             ),
         ),
     )

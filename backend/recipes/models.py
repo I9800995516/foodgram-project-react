@@ -161,8 +161,8 @@ class RecipeIngredientsMerge(models.Model):
         validators=[
             MinValueValidator(
                 MIN_INGREDIENT_VALUE,
-                message='Количество не может быть'
-                'меньше {MIN_INGREDIENT_VALUE}',
+                message=f'Количество не может быть'
+                f'меньше {MIN_INGREDIENT_VALUE}',
             ),
         ],
     )
@@ -179,6 +179,33 @@ class RecipeIngredientsMerge(models.Model):
 
     def __str__(self):
         return f'Ингредиент: {self.ingredient}, Рецепт: {self.recipe}'
+
+
+# class Cart(models.Model):
+#     user = models.ForeignKey(
+#         User,
+#         related_query_name='shopping',
+#         verbose_name='Пользователь',
+#         on_delete=models.CASCADE,
+#     )
+#     recipe = models.ForeignKey(
+#         Recipe,
+#         related_query_name='shopping',
+#         verbose_name='Рецепт',
+#         on_delete=models.CASCADE,
+#     )
+
+#     class Meta:
+#         verbose_name = 'Рецепт в списке покупок'
+#         verbose_name_plural = 'Рецепты в списке покупок'
+#         constraints = [
+#             models.UniqueConstraint(
+#                 fields=('user', 'recipe'), name='unique_korzina_user_recipe',
+#             ),
+#         ]
+
+#     def __str__(self):
+#         return f'{self.recipe.name} в списке покупок для {self.user.username}'
 
 
 class Cart(models.Model):
@@ -200,7 +227,7 @@ class Cart(models.Model):
         verbose_name_plural = 'Рецепты в списке покупок'
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'recipe'), name='unique_korzina_user_recipe',
+                fields=('user', 'recipe'), name='unique_cart_user_recipe',
             ),
         ]
 

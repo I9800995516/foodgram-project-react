@@ -1,6 +1,8 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
+from django.contrib.auth.models import AnonymousUser
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -40,8 +42,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # permission_classes = (IsRecipeAuthorOrReadOnly,)
-    permission_classes = (AllowAny,)
+    permission_classes = (IsRecipeAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
     http_method_names = ('get', 'post', 'delete', 'patch')
@@ -87,13 +88,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             select_list[list]['model'].objects.create(recipe=recipe, user=user)
             serializer = ListRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# Метод DELETE управляет удалением избранного рецепта из списка избранного
-# или корзины авторизованного пользователя. Когда пользователь отправляет
-# запрос DELETE к /favorite/ или /shopping_cart/ вызывается метод
-# _add_delete_recipe_to_list(), который проверяет, находится ли рецепт в
-# корзине пользователя или в его избранном, иначе он делает попытку
-# удалить чужой рецепт. Если удалить, возникают ошибки.
 
         if request.method == 'DELETE':
             if not select_list[list]['model'].objects.filter(

@@ -2,7 +2,7 @@
 [![API for Foodgram project workflow](https://github.com/i9800995516/foodgram-project-react/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/i9800995516/foodgram-project-react/actions/workflows/main.yml)
 
 ### Адресa:
-Проект доступен по адресу: http://158.160.17.34/  
+Проект доступен по адресу: http://158.160.17.34/
 Админ панель Django: http://158.160.17.34/admin/  
 Документация ReDoc: http://158.160.17.34/api/docs/
 
@@ -82,7 +82,7 @@ DB_PORT=5432
 
 ## Запустить приложение в контейнерах:
 
-*из директории `infra/`*
+*из директории `infra/`* сделать команды
 ```
 docker-compose up -d --build
 ```
@@ -119,5 +119,5 @@ docker-compose exec backend python manage.py load_ingredients
 
 ## Автор
 
-Штанова Маргарита
+Штанова Маргарита 
 I9800995516@yandex.ru

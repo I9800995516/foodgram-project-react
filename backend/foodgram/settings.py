@@ -5,23 +5,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
-font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
-
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-)
-
 # BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
-
-# load_dotenv(os.path.join(BASE_DIR.parent.parent, 'infra/.env'), verbose=True)
+# font_path = os.path.join(BASE_DIR, 'backend', 'static', 'robotor.ttf')
 
 # SECRET_KEY = os.getenv(
-#     'SECRET_KEY', default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs',
+#     'SECRET_KEY',
 # )
 
 
-DEBUG = False
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR.parent.parent, 'infra/.env'), verbose=True)
+
+
+SECRET_KEY = os.getenv(
+    'SECRET_KEY', default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs',
+)
+
+
+DEBUG = True
 
 ALLOWED_HOSTS = ['158.160.17.34', '127.0.0.1', 'localhost']
 
@@ -77,28 +78,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv(
-            'DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='postgres'),
-        'USER': os.getenv('POSTGRES_USER', default='postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='db'),
-        'PORT': os.getenv('DB_PORT', default='5432'),
-    },
-}
-
 # DATABASES = {
-#    'default': {
-#        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-#        'NAME': str(os.environ.get('POSTGRES_DB', BASE_DIR / 'db.sqlite3')),
-#        'USER': os.environ.get('POSTGRES_USER'),
-#        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-#        'HOST': os.environ.get('DB_HOST'),
-#        'PORT': os.environ.get('DB_PORT'),
-#    },
+#     'default': {
+#         'ENGINE': os.getenv(
+#             'DB_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+#         'HOST': os.getenv('DB_HOST', default='db'),
+#         'PORT': os.getenv('DB_PORT', default='5432'),
+#     },
 # }
+
+DATABASES = {
+   'default': {
+       'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+       'NAME': str(os.environ.get('POSTGRES_DB', BASE_DIR / 'db.sqlite3')),
+       'USER': os.environ.get('POSTGRES_USER'),
+       'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+       'HOST': os.environ.get('DB_HOST'),
+       'PORT': os.environ.get('DB_PORT'),
+   },
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [

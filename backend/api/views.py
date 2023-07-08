@@ -1,24 +1,21 @@
 from django.db import transaction
+from django.db.models import Count, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
 from api.recipepdf import recipe_pdf_download
-from recipes.models import Favorite, Ingredient, Recipe, Cart, Tag
+from recipes.models import (Cart, Favorite, Ingredient, Recipe,
+                            RecipeIngredientsMerge, Tag)
 from .filters import IngredientFiltration, RecipeSearchFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsRecipeAuthorOrReadOnly
-from .serializers import (
-    IngredientNoAmountSerializer,
-    ListRecipeSerializer,
-    RecipeCreateSerializer,
-    RecipeSerializer,
-    TagSerializers,
-)
+from .serializers import (IngredientNoAmountSerializer, ListRecipeSerializer,
+                          RecipeCreateSerializer, RecipeSerializer,
+                          TagSerializers)
 
 
 class TagViewSet(CreateListDestroyViewSet):
@@ -38,23 +35,32 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.annotate(
+        total_ingredients_count=Subquery(
+            RecipeIngredientsMerge.objects.filter(
+                recipe=OuterRef('pk')).values('recipe').annotate(
+                count=Count('id'),
+            ).values('count')[:1],
+        ),
+    ).filter(
+        recipe_ingredients__isnull=False,
+    ).exclude(name='', recipe_ingredients__isnull=True).distinct()
     serializer_class = RecipeSerializer
     permission_classes = (IsRecipeAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
     http_method_names = ('get', 'post', 'delete', 'patch')
 
-    def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return RecipeSerializer
-        return RecipeCreateSerializer
-
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     @staticmethod
     @transaction.atomic

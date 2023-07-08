@@ -1,6 +1,5 @@
 import base64
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
@@ -213,6 +212,26 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    def validate(self, data):
+        cooking_time = data.get('cooking_time')
+        if not isinstance(cooking_time, int):
+            raise serializers.ValidationError(
+                {'error': 'Время приготовления должно быть целым числом!'},
+            )
+        if not data.get('name'):
+            raise serializers.ValidationError('Название рецепта обязательно.')
+
+        if not data.get('ingredients'):
+            raise serializers.ValidationError(
+                'Минимум 1 ингредиент требуется.',
+            )
+
+        if not data.get('cooking_time') or data.get('cooking_time') <= 0:
+            raise serializers.ValidationError(
+                'Время приготовления должно быть не менее 1 мин.')
+
+        return data
+
     @transaction.atomic
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
@@ -239,40 +258,27 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             current_ingredient_id = ingredient.get('id')
             current_amount = int(ingredient.get('amount'))
-            if current_ingredient_id is None:
+
+            if not current_ingredient_id:
                 raise serializers.ValidationError(
-                    'Некорректный ID ингредиента',
-                )
+                    'Некорректный ID ингредиента.')
             try:
                 ingredient_obj = Ingredient.objects.get(
-                    id=current_ingredient_id,
-                )
-                ingredients_list.append(
-                    RecipeIngredientsMerge(
-                        recipe=recipe,
-                        ingredient=ingredient_obj,
-                        amount=current_amount,
-                    ),
-                )
-            except ObjectDoesNotExist:
+                    id=current_ingredient_id)
+            except Ingredient.DoesNotExist:
                 raise serializers.ValidationError(
-                    'Ингредиент с ID {} не существует'
-                    .format(current_ingredient_id),
+                    f'Ингредиент с ID {current_ingredient_id} не существует.',
                 )
+
+            ingredients_list.append(
+                RecipeIngredientsMerge(
+                    recipe=recipe,
+                    ingredient=ingredient_obj,
+                    amount=current_amount,
+                ),
+            )
+
         RecipeIngredientsMerge.objects.bulk_create(ingredients_list)
-
-    def validate(self, data):
-        cooking_time = data.get('cooking_time')
-        if not isinstance(cooking_time, int):
-            raise serializers.ValidationError(
-                {'error': 'Время приготовления должно быть целым числом!'},
-            )
-        if cooking_time <= 0:
-            raise serializers.ValidationError(
-                {'error': 'Время приготовления должно быть не менее 1 мин!'},
-            )
-
-        return data
 
     def to_representation(self, instance):
         serializer = RecipeSerializer(

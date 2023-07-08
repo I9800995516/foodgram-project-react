@@ -90,7 +90,7 @@ class AddFollowerSerializer(GetFollowSerializer):
         if author is not None:
             if Follow.objects.filter(author=author, follower=user).exists():
                 raise ValidationError(
-                    detail='Вы уже подписаны на этого автора!',
+                    detail=f'Вы уже подписаны на этого {author}!',
                     code=status.HTTP_400_BAD_REQUEST,
                 )
             if user == author:
@@ -100,23 +100,6 @@ class AddFollowerSerializer(GetFollowSerializer):
                 )
 
         return data
-    # def validate(self, data):
-    #     author = self.instance
-    #     user = self.context.get('request').user
-
-    #     if author is not None:
-    #         if Follow.objects.filter(author=author, follower=user).exists():
-    #             raise ValidationError(
-    #                 default_detail='Вы уже подписаны на этого автора!',
-    #                 default_code=status.HTTP_400_BAD_REQUEST,
-    #             )
-    #         if user == author:
-    #             raise ValidationError(
-    #                 default_detail='Нельзя подписаться на самого себя!',
-    #                 default_code=status.HTTP_400_BAD_REQUEST,
-    #             )
-
-    #     return data
 
     def get_recipes(self, obj):
         recipes = obj.recipes.all()

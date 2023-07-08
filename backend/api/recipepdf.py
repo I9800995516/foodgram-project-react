@@ -1,16 +1,18 @@
 from collections import defaultdict
 from io import BytesIO
 
-from api.serializers import RecipeIngredientsMerge
 from django.db import models
 from django.http import FileResponse
-from recipes.models import Cart
 from reportlab.lib import colors, pagesizes
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph
+
+from api.serializers import RecipeIngredientsMerge
+from recipes.models import Cart
+
 
 FONT_PATH = 'static/robotor.ttf'
 PAGE_WIDTH, PAGE_HEIGHT = pagesizes.A4

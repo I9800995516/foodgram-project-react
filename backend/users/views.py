@@ -10,6 +10,7 @@ from api.pagination import CustomPagination
 from .models import Follow, User
 from .serializers import (AddFollowerSerializer, FieldUserSerializer,
                           GetFollowSerializer)
+from recipes.models import Recipe
 
 
 class UsersViewSet(UserViewSet):
@@ -31,6 +32,25 @@ class UsersViewSet(UserViewSet):
         subscription = Follow.objects.filter(follower=user, author=author)
 
         if request.method == 'POST':
+            recipes_limit = int(request.data.get('recipes_limit', 3))
+
+            if recipes_limit < 0:
+                return Response(
+                    {'errors':
+                     f'Некорректное значение'
+                     f'для количества рецептов {recipes_limit}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            request.data['recipes_limit'] = recipes_limit
+
+            recipe_exists = Recipe.objects.exists()
+            if not recipe_exists:
+                return Response(
+                    {'errors': 'Рецепта не существует!'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             serializer = AddFollowerSerializer(
                 instance=author,
                 data=request.data,
@@ -38,9 +58,11 @@ class UsersViewSet(UserViewSet):
             )
             serializer.is_valid(raise_exception=True)
 
-            if author.recipes.count() >= author.recipes_limit:
+            if author.recipes.count() >= recipes_limit:
                 return Response(
-                    {'errors': 'Превышено ограничение на количество рецептов у автора!'},
+                    {'errors':
+                     f'Превышено ограничение'
+                     f'на количество рецептов у автора: {recipes_limit}!'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -74,47 +96,3 @@ class UsersViewSet(UserViewSet):
             context={'request': request},
         )
         return self.get_paginated_response(serializer.data)
-    # @transaction.atomic
-    # def subscribe(self, request, **kwargs):
-    #     user = request.user
-    #     author_id = int(kwargs.get('id'))
-    #     author = get_object_or_404(User, id=author_id)
-    #     subscription = Follow.objects.filter(follower=user, author=author)
-
-    #     if request.method == 'POST':
-    #         serializer = AddFollowerSerializer(
-    #             instance=author,
-    #             data=request.data,
-    #             context={'request': request},
-    #         )
-    #         serializer.is_valid(raise_exception=True)
-    #         with transaction.atomic():
-    #             Follow.objects.create(follower=user, author=author)
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    #     if request.method == 'DELETE' and not subscription.exists():
-    #         return Response(
-    #             {'errors': 'Вы уже удалили этого автора из подписок!'},
-    #             status=status.HTTP_400_BAD_REQUEST,
-    #         )
-
-    #     with transaction.atomic():
-    #         subscription.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
-    # @action(
-    #     detail=False,
-    #     permission_classes=[permissions.IsAuthenticated],
-    #     authentication_classes=[TokenAuthentication],
-    # )
-    # def subscriptions(self, request):
-    #     user = request.user
-    #     queryset = User.objects.filter(followers__follower=user)
-    #     pages = self.paginate_queryset(queryset)
-
-    #     serializer = GetFollowSerializer(
-    #         pages,
-    #         many=True,
-    #         context={'request': request},
-    #     )
-    #     return self.get_paginated_response(serializer.data)

@@ -2,7 +2,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
-
 from foodgram.settings import EMAIL_LENGTH, NAME_LENGTH, TEXT_LENGTH
 
 from .validators import UsernameValidator
@@ -10,7 +9,6 @@ from .validators import UsernameValidator
 
 class User(AbstractUser):
     """Модель создания пользователя."""
-    recipes_limit = models.IntegerField(default=3)
 
     USER = 'user'
     ADMIN = 'admin'

@@ -5,9 +5,8 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
-from recipes.models import Recipe
-
 from .models import Follow, User
+from recipes.models import Recipe
 
 
 class FieldUserSerializer(UserSerializer):

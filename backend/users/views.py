@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from django.db.models import Count
 from rest_framework import permissions, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -8,9 +9,9 @@ from rest_framework.response import Response
 
 from api.pagination import CustomPagination
 from .models import Follow, User
-from .serializers import (AddFollowerSerializer, FieldUserSerializer,
-                          GetFollowSerializer)
-from recipes.models import Recipe
+from .serializers import (
+    AddFollowerSerializer, FieldUserSerializer, GetFollowSerializer)
+from foodgram.settings import RECIPES_LIMIT
 
 
 class UsersViewSet(UserViewSet):
@@ -32,25 +33,6 @@ class UsersViewSet(UserViewSet):
         subscription = Follow.objects.filter(follower=user, author=author)
 
         if request.method == 'POST':
-            recipes_limit = int(request.data.get('recipes_limit', 3))
-
-            if recipes_limit < 0:
-                return Response(
-                    {'errors':
-                     f'Некорректное значение'
-                     f'для количества рецептов {recipes_limit}'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            request.data['recipes_limit'] = recipes_limit
-
-            recipe_exists = Recipe.objects.exists()
-            if not recipe_exists:
-                return Response(
-                    {'errors': 'Рецепта не существует!'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
             serializer = AddFollowerSerializer(
                 instance=author,
                 data=request.data,
@@ -58,16 +40,9 @@ class UsersViewSet(UserViewSet):
             )
             serializer.is_valid(raise_exception=True)
 
-            if author.recipes.count() >= recipes_limit:
-                return Response(
-                    {'errors':
-                     f'Превышено ограничение'
-                     f'на количество рецептов у автора: {recipes_limit}!'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
             with transaction.atomic():
                 Follow.objects.create(follower=user, author=author)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE' and not subscription.exists():
@@ -78,6 +53,7 @@ class UsersViewSet(UserViewSet):
 
         with transaction.atomic():
             subscription.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -87,7 +63,10 @@ class UsersViewSet(UserViewSet):
     )
     def subscriptions(self, request):
         user = request.user
-        queryset = User.objects.filter(followers__follower=user)
+        queryset = User.objects.filter(followers__follower=user).annotate(
+            recipe_count=Count('recipes'),
+        )
+
         pages = self.paginate_queryset(queryset)
 
         serializer = GetFollowSerializer(
@@ -95,4 +74,14 @@ class UsersViewSet(UserViewSet):
             many=True,
             context={'request': request},
         )
-        return self.get_paginated_response(serializer.data)
+
+        serialized_data = []
+        for data in serializer.data:
+            user_data = data.copy()
+            if 'recipes' in user_data:
+                recipes = user_data['recipes']
+                if len(recipes) > RECIPES_LIMIT:
+                    user_data['recipes'] = recipes[:RECIPES_LIMIT]
+            serialized_data.append(user_data)
+
+        return self.get_paginated_response(serialized_data)

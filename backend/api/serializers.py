@@ -203,51 +203,54 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags', [])
+        ingredients = validated_data.pop('ingredients', [])
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-
         self.save_ingredients(recipe, ingredients)
-
         return recipe
 
     def validate(self, data):
-        cooking_time = data.get('cooking_time')
+        validated_data = super().validate(data)
+        cooking_time = validated_data.get('cooking_time')
+        name = validated_data.get('name')
+        ingredients = validated_data.get('ingredients')
+        tags = validated_data.get('tags')
+        image = validated_data.get('image')
         if not isinstance(cooking_time, int):
             raise serializers.ValidationError(
                 {'error': 'Время приготовления должно быть целым числом!'},
             )
-        if not data.get('name'):
+        if not name:
             raise serializers.ValidationError('Название рецепта обязательно.')
-
-        if not data.get('ingredients'):
+        if not ingredients:
             raise serializers.ValidationError(
-                'Минимум 1 ингредиент требуется.',
-            )
-
-        if not data.get('cooking_time') or data.get('cooking_time') <= 0:
+                'Минимум 1 ингредиент требуется.')
+        if not cooking_time or cooking_time <= 0:
             raise serializers.ValidationError(
                 'Время приготовления должно быть не менее 1 мин.')
-
-        return data
+        if not tags:
+            raise serializers.ValidationError('Требуется добавить тэг.')
+        if not image and not self.instance.image:
+            raise serializers.ValidationError('Требуется добавить картинку.')
+        return validated_data
 
     @transaction.atomic
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.image = validated_data.get('image', instance.image)
         instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time,
-        )
+            'cooking_time', instance.cooking_time)
 
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients', [])
+        tags = validated_data.pop('tags', [])
 
         instance.tags.set(tags)
         instance.ingredients.clear()
-
         self.save_ingredients(instance, ingredients)
+
+        if 'image' in validated_data:
+            instance.image = validated_data['image']
 
         instance.save()
         return instance
@@ -255,29 +258,25 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     @staticmethod
     def save_ingredients(recipe, ingredients):
         ingredients_list = []
+        ingredient_ids = [ingredient.get('id') for ingredient in ingredients]
+        ingredient_objs = Ingredient.objects.in_bulk(ingredient_ids)
         for ingredient in ingredients:
             current_ingredient_id = ingredient.get('id')
             current_amount = int(ingredient.get('amount'))
-
             if not current_ingredient_id:
                 raise serializers.ValidationError(
                     'Некорректный ID ингредиента.')
-            try:
-                ingredient_obj = Ingredient.objects.get(
-                    id=current_ingredient_id)
-            except Ingredient.DoesNotExist:
+            if current_ingredient_id not in ingredient_objs:
                 raise serializers.ValidationError(
                     f'Ингредиент с ID {current_ingredient_id} не существует.',
                 )
-
             ingredients_list.append(
                 RecipeIngredientsMerge(
                     recipe=recipe,
-                    ingredient=ingredient_obj,
+                    ingredient=ingredient_objs[current_ingredient_id],
                     amount=current_amount,
                 ),
             )
-
         RecipeIngredientsMerge.objects.bulk_create(ingredients_list)
 
     def to_representation(self, instance):
